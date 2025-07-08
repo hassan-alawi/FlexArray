@@ -23,16 +23,15 @@
 `include "dsp_sys_arr_pkg.vh"
 import dsp_sys_arr_pkg::*;
 
-module mult_accum_wrapper(
+module mult_accum_wrapper #(parameter IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, MUL_OUT_STG = 1, ADD_OUT_STG = 1, FPOPMODE_STG = 3, FPINMODE_STG = 1, MODE = 0)(
     input logic clk, nrst,
     PE_if.pe peif
     );
     
     // Accumulator Flip Flop
-    single_float accumulator,out_dat;
-    logic out_valid, out_ready;
-    
-    assign out_ready = out_valid;
+    single_float accumulator, out_dat;
+    logic out_valid, out_ready,n_comp_done;
+   
     assign peif.accum_sum = accumulator;
     
     always_ff @(posedge clk, negedge nrst) begin
@@ -44,25 +43,35 @@ module mult_accum_wrapper(
         end
         
         else begin
-            peif.user <= t_user;
+            peif.user       <= t_user;
+            peif.comp_done  <= n_comp_done;
+            
             if(out_valid) begin
                 accumulator <= out_dat;
-                peif.comp_done <= 1'b1;
             end
             
             else begin
                 accumulator <= accumulator;
-                peif.comp_done <= 1'b0;
             end
         end
     end
     
     // FP-32 MAD Signals 
-    logic a_valid, a_ready, b_ready, b_valid, a_read, b_read, n_a_read, n_b_read;
+    logic a_valid, a_ready, b_ready, b_valid, a_read, b_read, n_a_read, n_b_read, processing;
     single_float a_dat, b_dat, latched_a_dat, latched_b_dat, n_latched_a_dat, n_latched_b_dat;
     error t_user;
 
-    floating_point_1 fp_macm(
+    dsp_prim #(
+    .IN_STG_1(IN_STG_1),
+    .IN_STG_2(IN_STG_2),
+    .MUL_PIP(MUL_PIP),
+    .MUL_OUT_STG(MUL_OUT_STG),
+    .ADD_OUT_STG(ADD_OUT_STG),
+    .FPOPMODE_STG(FPOPMODE_STG),
+    .FPINMODE_STG(FPINMODE_STG),
+    .MODE(MODE)
+    )
+    fp_macm(
     .aclk(clk),
     .aresetn(nrst),
     .s_axis_a_tvalid(a_valid),
@@ -72,6 +81,7 @@ module mult_accum_wrapper(
     .s_axis_b_tready(b_ready),
     .s_axis_b_tdata(b_dat),
     .m_axis_result_tvalid(out_valid),
+    .processing(processing),
     .m_axis_result_tready(out_ready),
     .m_axis_result_tdata(out_dat),
     .m_axis_result_tuser(t_user));
@@ -135,7 +145,7 @@ module mult_accum_wrapper(
     n_latched_b_dat = latched_b_dat;
     peif.col_in_ready = 1'B0;
     b_valid = 1'B0;
-    
+
     peif.col_out_valid = ~b_read;
     
     if(peif.col_in_valid & b_ready & b_read) begin
@@ -150,6 +160,22 @@ module mult_accum_wrapper(
         n_latched_b_dat = 'b0;
     end
     
-    end 
+    end  
+    
+     // Result Logic 
+    always_comb begin
+    out_ready   = 1'B0;
+    n_comp_done = peif.comp_done;
+    
+    if(out_valid) begin
+        out_ready = 1'B1;
+        n_comp_done = 1'b1;
+    end
+    
+    else if (peif.row_in_valid | peif.col_in_valid | ~a_ready | ~b_ready | processing) begin
+        n_comp_done = 1'b0;
+    end
+    
+    end  
        
 endmodule

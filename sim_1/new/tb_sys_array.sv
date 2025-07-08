@@ -26,17 +26,43 @@ module tb_sys_array;
 
 parameter PERIOD = 1.5;
 
+parameter M = 2;
+parameter N = 3;
+parameter K = 2;
+
+parameter IN_STG_1 = 1;
+parameter IN_STG_2 = 0;
+parameter MUL_PIP = 1;
+parameter MUL_OUT_STG = 1;
+parameter ADD_OUT_STG = 1;
+parameter FPOPMODE_STG = 2;
+parameter FPINMODE_STG = 1;
+parameter MODE = 0;
+
 logic CLK = 0, nRST;
 
 //Testbench Signals
 logic comp_done, error;
 single_float r1c1_out, r1c2_out, r2c1_out, r2c2_out;
 
-integer num_cycles, en_count;
+integer num_cycles, en_count, begin_sim;
 
 always #(PERIOD/2) CLK++;
 
-sys_array sa(CLK,nRST,comp_done,error,r1c1_out, r1c2_out, r2c1_out, r2c2_out);
+sys_array #(
+    .M(M),
+    .N(N),
+    .K(K),
+    .IN_STG_1(IN_STG_1),
+    .IN_STG_2(IN_STG_2),
+    .MUL_PIP(MUL_PIP),
+    .MUL_OUT_STG(MUL_OUT_STG),
+    .ADD_OUT_STG(ADD_OUT_STG),
+    .FPOPMODE_STG(FPOPMODE_STG),
+    .FPINMODE_STG(FPINMODE_STG),
+    .MODE(MODE)
+    )
+sa(CLK,nRST,comp_done,error,r1c1_out, r1c2_out, r2c1_out, r2c2_out);
 
 task init_tb();
     nRST = 1'b1;  
@@ -60,7 +86,15 @@ task reset_dut();
 endtask
 
 initial begin
+    begin_sim = 0;
+    #(100 * 1ns);
+    begin_sim = 1;
+    end
+    
+
+initial begin
     init_tb();
+    wait(begin_sim);
     reset_dut();
     num_cycles = 0;
     en_count = 1;

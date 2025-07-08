@@ -23,15 +23,24 @@
 `include "dsp_sys_arr_pkg.vh"
 import dsp_sys_arr_pkg::*;
 
-`timescale 1ns / 1ns
+//`timescale 1ns / 1ns
 
 module tb_mult_accum_wrapper;
 
     parameter PERIOD = 1.5;
     parameter VEC_SIZE = 16;
-    parameter INPUT_BUFF = 1; // Number of 32 bit FP words that can be buffered at the input buffers before being processed
-                              // Would only need to support deeper queues if there is a lot of bursty behaviour in the system
-                              // Since compute latency per PE is uniform as confirmed from simulations, we expect equal rate Fetch and Store Requests
+    parameter INPUT_BUFF = 1; 
+    parameter FILL_CAP = 10;   
+                              
+    parameter IN_STG_1 = 1;
+    parameter IN_STG_2 = 0;
+    parameter MUL_PIP = 1;
+    parameter MUL_OUT_STG = 1;
+    parameter ADD_OUT_STG = 1;
+    parameter FPOPMODE_STG = 3;
+    parameter FPINMODE_STG = 1;
+    parameter MODE = 0;
+    
     logic CLK = 0, nRST;
     
     // Test Bench Signals
@@ -51,14 +60,24 @@ module tb_mult_accum_wrapper;
     shortreal test_row, test_col, test_sum;
     shortreal test_vector [0:VEC_SIZE];
     error test_user;
+    int begin_sim;
     
     // clock
     always #(PERIOD/2) CLK++;
 
     PE_if peif();
-    
-//    dsp_wrapper DUT(CLK, nRST, peif);
-    mult_accum_wrapper DUT(CLK, nRST, peif);
+
+    mult_accum_wrapper #(
+    .IN_STG_1(IN_STG_1),
+    .IN_STG_2(IN_STG_2),
+    .MUL_PIP(MUL_PIP),
+    .MUL_OUT_STG(MUL_OUT_STG),
+    .ADD_OUT_STG(ADD_OUT_STG),
+    .FPOPMODE_STG(FPOPMODE_STG),
+    .FPINMODE_STG(FPINMODE_STG),
+    .MODE(MODE)
+    )
+    DUT(CLK, nRST, peif);
      
     task init_tb();
         // Initializing Interface Input Signals
@@ -198,7 +217,7 @@ module tb_mult_accum_wrapper;
     peif.col_in_dat = create_single_float(col_in_dat);
     peif.row_in_dat = create_single_float(row_in_dat);
     
-    #(PERIOD*0.05);
+    #(PERIOD*0.1);
     ex_row_in_ready = succesful_pass & row_in_valid;
     ex_col_in_ready = succesful_pass & col_in_valid;
     ex_col_out_valid = 1'b0;
@@ -325,6 +344,24 @@ module tb_mult_accum_wrapper;
     #(PERIOD*0.05);
     endtask
     
+//    task pipline_stream(
+//        shortreal test_vector [0:VEC_SIZE]
+//    );
+    
+    
+//    endtask
+    
+    
+    initial begin
+    begin_sim = 0;
+    #(100 * 1ns);
+    begin_sim = 1;
+    end
+    
+    
+    
+    
+    
     
     initial begin
         testcase_num = 0;
@@ -343,7 +380,7 @@ module tb_mult_accum_wrapper;
         init_tb();
         reset_dut();
         
-        repeat (5) @(posedge CLK);
+        wait(begin_sim);
         
         // DUT ready to process
         // Inputs port valid
@@ -370,57 +407,111 @@ module tb_mult_accum_wrapper;
         
         
         // Stream Computation (Check for Accumulated Sum)
-        testphase = "Stream Computation";
-        reset_dut();
-        repeat (5) @(posedge CLK);
-        
-        testcase = "Fill, Compute and Empty";
-        
-        test_sum = 0;
-        
-        for(int j=0; j<VEC_SIZE; j++) begin
-            test_vector[j] = j+1;
-        end
-        
-        for (int i=0; i < 6; i++) begin
-            test_row = test_vector[i];
-            test_col = test_vector[i];
-            pass_inputs(1'b1,1'b1,1'b1,test_row,test_col);
+        if(ADD_OUT_STG) begin
+            testphase = "Stream Computation";
+            reset_dut();
+            repeat (5) @(posedge CLK);
             
-            comp_check(test_row, test_col, test_sum, test_user);
-        
-            test_sum += test_col*test_row;
+            testcase = "Fill, Compute and Empty";
             
-            @(posedge CLK);              
-            operand_request(1'b1,1'b1,test_col,test_row);
-        end 
-        
-        testcase = "Fill, and Empty, then compute"; // Fill the port A and B input buffers, by continously reading operands while PE is computing
-        reset_dut();
-        repeat (5) @(posedge CLK);
-        
-        test_sum = 0;
-        
-        for (int i=0; i < INPUT_BUFF+1; i++) begin // Through tests we know that buffers can only handle 1 unprocessed operand/s  to be queued
-            test_row = test_vector[i];             // Since we are passing both col and row operands at once, they will be buffered and then popped allowing for INPUT_BUFF + 1 operands to be passed in
-            test_col = test_vector[i];
-            pass_inputs(1'b1,1'b1,1'b1,test_row,test_col);
-                         
-            operand_request(1'b1,1'b1,test_col,test_row);
-        end
-        
-        
-        for (int i=0; i < INPUT_BUFF+1; i++) begin
-            test_row = test_vector[i];
-            test_col = test_vector[i];
+            test_sum = 0;
             
-            comp_check(test_row, test_col, test_sum, test_user);
-        
-            test_sum += test_col*test_row;
+            for(int j=0; j<VEC_SIZE; j++) begin
+                test_vector[j] = j+1;
+            end
+            
+            for (int i=0; i < 6; i++) begin
+                test_row = test_vector[i];
+                test_col = test_vector[i];
+                pass_inputs(1'b1,1'b1,1'b1,test_row,test_col);
+                
+                comp_check(test_row, test_col, test_sum, test_user);
+            
+                test_sum += test_col*test_row;
+                
+                @(posedge CLK);              
+                operand_request(1'b1,1'b1,test_col,test_row);
+            end 
+            
+            testcase = "Fill, and Empty, then compute"; // Fill the port A and B input buffers, by continously reading operands while PE is computing
+            reset_dut();
+            repeat (5) @(posedge CLK);
+            
+            test_sum = 0;
+            
+            for (int i=0; i < FILL_CAP; i++) begin // Through tests we know that buffers can only handle 1 unprocessed operand/s  to be queued
+                test_row = test_vector[i];             // Since we are passing both col and row operands at once, they will be buffered and then popped allowing for INPUT_BUFF + 1 operands to be passed in
+                test_col = test_vector[i];
+                pass_inputs(1'b1,1'b1,1'b1,test_row,test_col);
+                             
+                operand_request(1'b1,1'b1,test_col,test_row);
+            end
+            
+            
+            for (int i=0; i < FILL_CAP; i++) begin
+                test_row = test_vector[i];
+                test_col = test_vector[i];
+                if(i == FILL_CAP) begin
+                    comp_check(test_row, test_col, test_sum, test_user);
+                end
+                test_sum += test_col*test_row;
+            end
             
             repeat(2) @(posedge CLK);  
         end
         
+        else begin
+            testphase = "Stream Computation";
+            reset_dut();
+            repeat (5) @(posedge CLK);
+            
+            testcase = "Fill, Compute and Empty";
+            
+            test_sum = 0;
+            
+            for(int j=0; j<VEC_SIZE; j++) begin
+                test_vector[j] = j+1;
+            end
+            
+            for (int i=0; i < 6; i++) begin
+                test_row = test_vector[i];
+                test_col = test_vector[i];
+                pass_inputs(1'b1,1'b1,1'b1,test_row,test_col);
+                
+                comp_check(test_row, test_col, test_sum, test_user);
+            
+                test_sum += 0;
+                
+                @(posedge CLK);              
+                operand_request(1'b1,1'b1,test_col,test_row);
+            end 
+            
+            testcase = "Fill, and Empty, then compute"; // Fill the port A and B input buffers, by continously reading operands while PE is computing
+            reset_dut();
+            repeat (5) @(posedge CLK);
+            
+            test_sum = 0;
+            
+            for (int i=0; i < INPUT_BUFF+1; i++) begin // Through tests we know that buffers can only handle 1 unprocessed operand/s  to be queued
+                test_row = test_vector[i];             // Since we are passing both col and row operands at once, they will be buffered and then popped allowing for INPUT_BUFF + 1 operands to be passed in
+                test_col = test_vector[i];
+                pass_inputs(1'b1,1'b1,1'b1,test_row,test_col);
+                             
+                operand_request(1'b1,1'b1,test_col,test_row);
+            end
+            
+            
+            for (int i=0; i < INPUT_BUFF+1; i++) begin
+                test_row = test_vector[i];
+                test_col = test_vector[i];
+                if(i == INPUT_BUFF) begin
+                    comp_check(test_row, test_col, test_sum, test_user);
+                end
+                test_sum += 0;
+            end
+            
+            repeat(2) @(posedge CLK);  
+        end
         // Check that DUT doesnt accept row/column input if row/column operand has not been read
         testphase = "Check Operand Passing";
         reset_dut();

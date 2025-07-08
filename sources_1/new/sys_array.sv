@@ -22,12 +22,10 @@
 `include "dsp_sys_arr_pkg.vh"
 import dsp_sys_arr_pkg::*;
 
-module sys_array #(parameter m = 2, parameter n = 2, parameter k = 2)(
+module sys_array #(parameter M = 2, N = 3, K = 2, IN_STG_1 = 1, IN_STG_2 = 1, MUL_PIP = 1, MUL_OUT_STG = 1, ADD_OUT_STG = 1, FPOPMODE_STG = 3, FPINMODE_STG = 1, MODE = 0)(
 input logic clk, nrst,
 output logic comp_done, error,
 output single_float r1c1_out, r1c2_out, r2c1_out, r2c2_out);
-
-parameter N = 3;
 
 PE_if peifr1c1();
 PE_if peifr2c1();
@@ -45,10 +43,58 @@ assign r2c1_out = peifr2c1.accum_sum;
 assign r2c2_out = peifr2c2.accum_sum;
 
 
-dsp_wrapper r1c1(clk, nrst, peifr1c1);
-dsp_wrapper r1c2(clk, nrst, peifr1c2);
-dsp_wrapper r2c1(clk, nrst, peifr2c1);
-dsp_wrapper r2c2(clk, nrst, peifr2c2); 
+//dsp_wrapper r1c1(clk, nrst, peifr1c1);
+//dsp_wrapper r1c2(clk, nrst, peifr1c2);
+//dsp_wrapper r2c1(clk, nrst, peifr2c1);
+//dsp_wrapper r2c2(clk, nrst, peifr2c2); 
+
+mult_accum_wrapper #(
+    .IN_STG_1(IN_STG_1),
+    .IN_STG_2(IN_STG_2),
+    .MUL_PIP(MUL_PIP),
+    .MUL_OUT_STG(MUL_OUT_STG),
+    .ADD_OUT_STG(ADD_OUT_STG),
+    .FPOPMODE_STG(FPOPMODE_STG),
+    .FPINMODE_STG(FPINMODE_STG),
+    .MODE(MODE)
+    )
+    r1c1(clk, nrst, peifr1c1);
+    
+mult_accum_wrapper #(
+    .IN_STG_1(IN_STG_1),
+    .IN_STG_2(IN_STG_2),
+    .MUL_PIP(MUL_PIP),
+    .MUL_OUT_STG(MUL_OUT_STG),
+    .ADD_OUT_STG(ADD_OUT_STG),
+    .FPOPMODE_STG(FPOPMODE_STG),
+    .FPINMODE_STG(FPINMODE_STG),
+    .MODE(MODE)
+    )
+    r1c2(clk, nrst, peifr1c2);
+    
+mult_accum_wrapper #(
+    .IN_STG_1(IN_STG_1),
+    .IN_STG_2(IN_STG_2),
+    .MUL_PIP(MUL_PIP),
+    .MUL_OUT_STG(MUL_OUT_STG),
+    .ADD_OUT_STG(ADD_OUT_STG),
+    .FPOPMODE_STG(FPOPMODE_STG),
+    .FPINMODE_STG(FPINMODE_STG),
+    .MODE(MODE)
+    )
+    r2c1(clk, nrst, peifr2c1);
+    
+mult_accum_wrapper #(
+    .IN_STG_1(IN_STG_1),
+    .IN_STG_2(IN_STG_2),
+    .MUL_PIP(MUL_PIP),
+    .MUL_OUT_STG(MUL_OUT_STG),
+    .ADD_OUT_STG(ADD_OUT_STG),
+    .FPOPMODE_STG(FPOPMODE_STG),
+    .FPINMODE_STG(FPINMODE_STG),
+    .MODE(MODE)
+    )
+    r2c2(clk, nrst, peifr2c2); 
 
 always_ff @(posedge clk, negedge nrst) begin
 
