@@ -55,16 +55,14 @@ output single_float m_axis_result_tdata,
 output error m_axis_result_tuser);
 
    parameter LAT = IN_STG_1 + IN_STG_2 + MUL_PIP + MUL_OUT_STG + ADD_OUT_STG; // Baseline Latency is 0 (Can do single cycle operation according to behavioral sim)
-//   parameter CLR_LAT = LAT - ((IN_STG_1 || IN_STG_2) + MUL_PIP + MUL_OUT_STG + ADD_OUT_STG);
    
    logic add_overflow, add_underflow, add_invalid, mul_overflow, mul_underflow, mul_invalid, comp_ready, is_add, comp_done;
    single_float add_out, mul_out, a_dat, b_dat, n_a_dat, n_b_dat;
    dsp_add_conf fpopmode;
    error add_user, mul_user, n_add_user, n_mul_user;
    float_reg a_in, b_in, n_a_in, n_b_in, mul_out_latch, add_out_latch, n_mul_out_latch, n_add_out_latch;
-//   if(LAT != 0) begin
+   float_reg b_dat_2; // To accomodate cycle delay due to second A input stage
    logic [LAT:0] pip_stg_ocp, n_pip_stg_ocp;
-//   end
    
    // Configuring DSP Primitive
    always_comb begin
@@ -96,6 +94,7 @@ output error m_axis_result_tuser);
         add_out_latch   <= '0;
         a_in            <= '0;
         b_in            <= '0;
+        b_dat_2          <= '0;
         a_dat           <= '0;
         b_dat           <= '0;
         add_user        <= '0;
@@ -105,9 +104,15 @@ output error m_axis_result_tuser);
     
     else begin
         a_in            <= n_a_in;
+        if(IN_STG_2) begin
+        b_dat            <= b_dat_2;
+        b_dat_2          <= n_b_dat;
+        end
+        else begin
+        b_dat           <= n_b_dat;
+        end
         b_in            <= n_b_in;
         a_dat           <= n_a_dat;
-        b_dat           <= n_b_dat;
         mul_out_latch   <= n_mul_out_latch;
         add_out_latch   <= n_add_out_latch;
         add_user        <= n_add_user;
@@ -120,6 +125,7 @@ output error m_axis_result_tuser);
    always_comb begin
     s_axis_a_tready = ~a_in.dirty; // Only accept input if holding registers is not full  
     s_axis_b_tready = ~b_in.dirty;
+    
     comp_ready      = (a_in.dirty & b_in.dirty) | (a_in.dirty & s_axis_b_tvalid & s_axis_b_tready) | (b_in.dirty & s_axis_a_tvalid & s_axis_a_tready) | (s_axis_a_tvalid & s_axis_b_tvalid & s_axis_a_tready & s_axis_b_tready);
     
     n_a_in = a_in;
@@ -127,7 +133,7 @@ output error m_axis_result_tuser);
     
 
     n_a_dat = a_dat;
-    n_b_dat = b_dat;
+    n_b_dat = IN_STG_2 ? b_dat_2 : b_dat;
     
     n_pip_stg_ocp = pip_stg_ocp >> 1; 
     
@@ -247,7 +253,7 @@ output error m_axis_result_tuser);
       .IS_RSTFPOPMODE_INVERTED(1'b1),    // Optional inversion for RSTFPOPMODE
       .IS_ASYNC_RST_INVERTED(1'b1),      // Optional Inversion of ASYNC_RST
       // Register Control Attributes: Pipeline Register Configuration
-      .ACASCREG(IN_STG_1),                      // Number of pipeline stages between A/ACIN and ACOUT (0-2)
+      .ACASCREG(IN_STG_1|IN_STG_2),                      // Number of pipeline stages between A/ACIN and ACOUT (0-2)
       .AREG(IN_STG_1+IN_STG_2),          // Pipeline stages for A (0-2)
       .FPA_PREG(ADD_OUT_STG),                      // Pipeline stages for FPA output (0-1)
       .FPBREG(IN_STG_1),                        // Pipeline stages for B inputs (0-1)

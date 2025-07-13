@@ -3,6 +3,7 @@
 
 `include "dsp_sys_arr_pkg.vh"
 
+`timescale 1ns / 1ps
 interface PE_if;
   // import types
   import dsp_sys_arr_pkg::*;

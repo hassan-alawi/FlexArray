@@ -30,12 +30,12 @@ parameter M = 2;
 parameter N = 3;
 parameter K = 2;
 
-parameter IN_STG_1 = 1;
+parameter IN_STG_1 = 0;
 parameter IN_STG_2 = 0;
-parameter MUL_PIP = 1;
-parameter MUL_OUT_STG = 1;
+parameter MUL_PIP = 0;
+parameter MUL_OUT_STG = 0;
 parameter ADD_OUT_STG = 1;
-parameter FPOPMODE_STG = 2;
+parameter FPOPMODE_STG = 1;
 parameter FPINMODE_STG = 1;
 parameter MODE = 0;
 

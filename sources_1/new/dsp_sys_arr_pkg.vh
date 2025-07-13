@@ -1,6 +1,7 @@
 `ifndef DSP_SYS_ARR_PKG_VH
 `define DSP_SYS_ARR_PKG_VH
 
+`timescale 1ns / 1ps
 package dsp_sys_arr_pkg;
 
   // word width and size

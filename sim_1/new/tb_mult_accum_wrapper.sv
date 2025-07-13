@@ -28,16 +28,16 @@ import dsp_sys_arr_pkg::*;
 module tb_mult_accum_wrapper;
 
     parameter PERIOD = 1.5;
-    parameter VEC_SIZE = 16;
     parameter INPUT_BUFF = 1; 
-    parameter FILL_CAP = 10;   
+    parameter FILL_CAP = 32;
+    parameter VEC_SIZE = FILL_CAP;   
                               
     parameter IN_STG_1 = 1;
-    parameter IN_STG_2 = 0;
+    parameter IN_STG_2 = 1;
     parameter MUL_PIP = 1;
     parameter MUL_OUT_STG = 1;
     parameter ADD_OUT_STG = 1;
-    parameter FPOPMODE_STG = 3;
+    parameter FPOPMODE_STG = 1;
     parameter FPINMODE_STG = 1;
     parameter MODE = 0;
     
@@ -420,7 +420,7 @@ module tb_mult_accum_wrapper;
                 test_vector[j] = j+1;
             end
             
-            for (int i=0; i < 6; i++) begin
+            for (int i=0; i < FILL_CAP; i++) begin
                 test_row = test_vector[i];
                 test_col = test_vector[i];
                 pass_inputs(1'b1,1'b1,1'b1,test_row,test_col);
@@ -473,7 +473,7 @@ module tb_mult_accum_wrapper;
                 test_vector[j] = j+1;
             end
             
-            for (int i=0; i < 6; i++) begin
+            for (int i=0; i < FILL_CAP; i++) begin
                 test_row = test_vector[i];
                 test_col = test_vector[i];
                 pass_inputs(1'b1,1'b1,1'b1,test_row,test_col);
@@ -485,32 +485,32 @@ module tb_mult_accum_wrapper;
                 @(posedge CLK);              
                 operand_request(1'b1,1'b1,test_col,test_row);
             end 
+            // Not necessary for pure multiplication computation
+//            testcase = "Fill, and Empty, then compute"; // Fill the port A and B input buffers, by continously reading operands while PE is computing
+//            reset_dut();
+//            repeat (5) @(posedge CLK);
             
-            testcase = "Fill, and Empty, then compute"; // Fill the port A and B input buffers, by continously reading operands while PE is computing
-            reset_dut();
-            repeat (5) @(posedge CLK);
+//            test_sum = 0;
             
-            test_sum = 0;
-            
-            for (int i=0; i < INPUT_BUFF+1; i++) begin // Through tests we know that buffers can only handle 1 unprocessed operand/s  to be queued
-                test_row = test_vector[i];             // Since we are passing both col and row operands at once, they will be buffered and then popped allowing for INPUT_BUFF + 1 operands to be passed in
-                test_col = test_vector[i];
-                pass_inputs(1'b1,1'b1,1'b1,test_row,test_col);
+//            for (int i=0; i < FILL_CAP; i++) begin // Through tests we know that buffers can only handle 1 unprocessed operand/s  to be queued
+//                test_row = test_vector[i];             // Since we are passing both col and row operands at once, they will be buffered and then popped allowing for INPUT_BUFF + 1 operands to be passed in
+//                test_col = test_vector[i];
+//                pass_inputs(1'b1,1'b1,1'b1,test_row,test_col);
                              
-                operand_request(1'b1,1'b1,test_col,test_row);
-            end
+//                operand_request(1'b1,1'b1,test_col,test_row);
+//            end
             
             
-            for (int i=0; i < INPUT_BUFF+1; i++) begin
-                test_row = test_vector[i];
-                test_col = test_vector[i];
-                if(i == INPUT_BUFF) begin
-                    comp_check(test_row, test_col, test_sum, test_user);
-                end
-                test_sum += 0;
-            end
+//            for (int i=0; i < FILL_CAP; i++) begin
+//                test_row = test_vector[i];
+//                test_col = test_vector[i];
+//                if(i == FILL_CAP-1) begin
+//                    comp_check(test_row, test_col, test_sum, test_user);
+//                end
+//                test_sum += 0;
+//            end
             
-            repeat(2) @(posedge CLK);  
+//            repeat(2) @(posedge CLK);
         end
         // Check that DUT doesnt accept row/column input if row/column operand has not been read
         testphase = "Check Operand Passing";

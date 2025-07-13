@@ -9,7 +9,7 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: Systolic Array that multiplies A mxn by B nxk matrix to produce C mxk
+// Description: Systolic Array that multiplies A MxN by B NxK matrix to produce C MxK
 // 
 // Dependencies: 
 // 
@@ -22,7 +22,7 @@
 `include "dsp_sys_arr_pkg.vh"
 import dsp_sys_arr_pkg::*;
 
-module sys_array #(parameter M = 2, N = 3, K = 2, IN_STG_1 = 1, IN_STG_2 = 1, MUL_PIP = 1, MUL_OUT_STG = 1, ADD_OUT_STG = 1, FPOPMODE_STG = 3, FPINMODE_STG = 1, MODE = 0)(
+module sys_array #(parameter M = 2, N = 3, K = 2, IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, MUL_OUT_STG = 1, ADD_OUT_STG = 1, FPOPMODE_STG = 1, FPINMODE_STG = 1, MODE = 0)(
 input logic clk, nrst,
 output logic comp_done, error,
 output single_float r1c1_out, r1c2_out, r2c1_out, r2c2_out);
