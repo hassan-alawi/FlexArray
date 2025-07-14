@@ -66,7 +66,32 @@ module tb_mult_accum_wrapper;
     always #(PERIOD/2) CLK++;
 
     PE_if peif();
-
+    
+    logic col_in_valid, row_in_valid, col_out_ready, row_out_ready;
+    single_float row_in_dat, col_in_dat; 
+    logic col_in_ready, row_in_ready, error_bit, col_out_valid, row_out_valid, comp_done;
+    error user;
+    single_float accum_sum, row_out_dat, col_out_dat;
+    
+    assign col_in_valid = peif.col_in_valid;
+    assign row_in_valid = peif.row_in_valid;
+    assign col_out_ready = peif.col_out_ready;
+    assign row_out_ready = peif.row_out_ready;
+    assign row_in_dat    = peif.row_in_dat;
+    assign col_in_dat    = peif.col_in_dat;
+    
+    assign peif.col_in_ready    = col_in_ready;
+    assign peif.row_in_ready    = row_in_ready;
+    assign peif.error_bit       = error_bit;
+    assign peif.col_out_valid   = col_out_valid;
+    assign peif.row_out_valid   = row_out_valid;
+    assign peif.comp_done       = comp_done;
+    assign peif.user            = user;
+    assign peif.col_out_dat     = col_out_dat;
+    assign peif.row_out_dat     = row_out_dat;
+    assign peif.accum_sum       = accum_sum;
+    
+    
     mult_accum_wrapper #(
     .IN_STG_1(IN_STG_1),
     .IN_STG_2(IN_STG_2),
@@ -77,7 +102,24 @@ module tb_mult_accum_wrapper;
     .FPINMODE_STG(FPINMODE_STG),
     .MODE(MODE)
     )
-    DUT(CLK, nRST, peif);
+    DUT(
+    .clk(CLK), 
+    .nrst(nRST), 
+    .col_in_valid(col_in_valid),
+    .row_in_valid(row_in_valid),
+    .col_out_ready(col_out_ready),
+    .row_out_ready(row_out_ready),
+    .row_in_dat(row_in_dat),
+    .col_in_dat(col_in_dat),
+    .col_in_ready(col_in_ready),
+    .row_in_ready(row_in_ready),
+    .error_bit(error_bit),
+    .col_out_valid(col_out_valid),
+    .row_out_valid(row_out_valid),
+    .comp_done(comp_done),
+    .accum_sum(accum_sum),
+    .row_out_dat(row_out_dat),
+    .col_out_dat(col_out_dat));
      
     task init_tb();
         // Initializing Interface Input Signals

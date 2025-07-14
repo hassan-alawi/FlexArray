@@ -24,110 +24,100 @@ import dsp_sys_arr_pkg::*;
 
 module sys_array #(parameter M = 2, N = 3, K = 2, IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, MUL_OUT_STG = 1, ADD_OUT_STG = 1, FPOPMODE_STG = 1, FPINMODE_STG = 1, MODE = 0)(
 input logic clk, nrst,
-output logic comp_done, error,
-output single_float r1c1_out, r1c2_out, r2c1_out, r2c2_out);
+output logic done, err,
+output single_float out [0:(M*K)-1]);
 
-PE_if peifr1c1();
-PE_if peifr2c1();
-PE_if peifr1c2();
-PE_if peifr2c2();
+// PE Signals
+logic col_in_valid [0:M*K-1], row_in_valid [0:M*K-1], col_out_ready [0:M*K-1], row_out_ready                                           [0:M*K-1];
+single_float row_in_dat [0:M*K-1], col_in_dat                                                                                          [0:M*K-1]; 
+logic col_in_ready [0:M*K-1], row_in_ready [0:M*K-1], error_bit [0:M*K-1], col_out_valid [0:M*K-1], row_out_valid [0:M*K-1], comp_done [0:M*K-1];
+error user                                                                                                                             [0:M*K-1];
+single_float accum_sum [0:M*K-1], row_out_dat [0:M*K-1], col_out_dat                                                                   [0:M*K-1];
 
-single_float [N-1:0] a_r1, a_r2, b_c1, b_c2, n_a_r1, n_a_r2, n_b_c1, n_b_c2;
+// Matrices Data Registers
+single_float [N-1:0] a_r [0:M-1],n_a_r [0:M-1];
+single_float [N-1:0] b_c [0:K-1],n_b_c [0:K-1];
 
-logic ar1_strt, bc1_strt, n_ar1_strt, n_bc1_strt;
-logic [3:0] r1c1_ctr, n_r1c1_ctr, r2c2_ctr, n_r2c2_ctr;
+// Per row/column Counters
+logic [$clog2(N)-1:0] ctr [0:M+K-1], n_ctr [0:M+K-1];
 
-assign r1c1_out = peifr1c1.accum_sum;
-assign r1c2_out = peifr1c2.accum_sum;
-assign r2c1_out = peifr2c1.accum_sum;
-assign r2c2_out = peifr2c2.accum_sum;
+always_comb begin
+    for(int i=0; i<M; i++) begin 
+        for(int j=0; j<K; j++) begin
+            out[i*K +j] = accum_sum[i*K +j]; 
+        end
+    end
+end
 
+generate 
 
-//dsp_wrapper r1c1(clk, nrst, peifr1c1);
-//dsp_wrapper r1c2(clk, nrst, peifr1c2);
-//dsp_wrapper r2c1(clk, nrst, peifr2c1);
-//dsp_wrapper r2c2(clk, nrst, peifr2c2); 
-
-mult_accum_wrapper #(
-    .IN_STG_1(IN_STG_1),
-    .IN_STG_2(IN_STG_2),
-    .MUL_PIP(MUL_PIP),
-    .MUL_OUT_STG(MUL_OUT_STG),
-    .ADD_OUT_STG(ADD_OUT_STG),
-    .FPOPMODE_STG(FPOPMODE_STG),
-    .FPINMODE_STG(FPINMODE_STG),
-    .MODE(MODE)
-    )
-    r1c1(clk, nrst, peifr1c1);
+for(genvar i = 0; i < M; i++) begin 
+    for(genvar j = 0; j < K; j++) begin 
+        mult_accum_wrapper #(
+        .IN_STG_1(IN_STG_1),
+        .IN_STG_2(IN_STG_2),
+        .MUL_PIP(MUL_PIP),
+        .MUL_OUT_STG(MUL_OUT_STG),
+        .ADD_OUT_STG(ADD_OUT_STG),
+        .FPOPMODE_STG(FPOPMODE_STG),
+        .FPINMODE_STG(FPINMODE_STG),
+        .MODE(MODE)
+        )
+        PE (
+        .clk(clk), 
+        .nrst(nrst), 
+        .col_in_valid(col_in_valid[i*K + j]),
+        .row_in_valid(row_in_valid[i*K + j]),
+        .col_out_ready(col_out_ready[i*K + j]),
+        .row_out_ready(row_out_ready[i*K + j]),
+        .row_in_dat(row_in_dat[i*K + j]),
+        .col_in_dat(col_in_dat[i*K + j]),
+        .col_in_ready(col_in_ready[i*K + j]),
+        .row_in_ready(row_in_ready[i*K + j]),
+        .error_bit(error_bit[i*K + j]),
+        .col_out_valid(col_out_valid[i*K + j]),
+        .row_out_valid(row_out_valid[i*K + j]),
+        .comp_done(comp_done[i*K + j]),
+        .accum_sum(accum_sum[i*K + j]),
+        .row_out_dat(row_out_dat[i*K + j]),
+        .col_out_dat(col_out_dat[i*K + j]));
+    end
+end
     
-mult_accum_wrapper #(
-    .IN_STG_1(IN_STG_1),
-    .IN_STG_2(IN_STG_2),
-    .MUL_PIP(MUL_PIP),
-    .MUL_OUT_STG(MUL_OUT_STG),
-    .ADD_OUT_STG(ADD_OUT_STG),
-    .FPOPMODE_STG(FPOPMODE_STG),
-    .FPINMODE_STG(FPINMODE_STG),
-    .MODE(MODE)
-    )
-    r1c2(clk, nrst, peifr1c2);
-    
-mult_accum_wrapper #(
-    .IN_STG_1(IN_STG_1),
-    .IN_STG_2(IN_STG_2),
-    .MUL_PIP(MUL_PIP),
-    .MUL_OUT_STG(MUL_OUT_STG),
-    .ADD_OUT_STG(ADD_OUT_STG),
-    .FPOPMODE_STG(FPOPMODE_STG),
-    .FPINMODE_STG(FPINMODE_STG),
-    .MODE(MODE)
-    )
-    r2c1(clk, nrst, peifr2c1);
-    
-mult_accum_wrapper #(
-    .IN_STG_1(IN_STG_1),
-    .IN_STG_2(IN_STG_2),
-    .MUL_PIP(MUL_PIP),
-    .MUL_OUT_STG(MUL_OUT_STG),
-    .ADD_OUT_STG(ADD_OUT_STG),
-    .FPOPMODE_STG(FPOPMODE_STG),
-    .FPINMODE_STG(FPINMODE_STG),
-    .MODE(MODE)
-    )
-    r2c2(clk, nrst, peifr2c2); 
+endgenerate
 
 always_ff @(posedge clk, negedge nrst) begin
 
     if(~nrst) begin
-//        for (logic i=0; i<N; i++) begin
-//            a_r1[i] <= $shortrealtobits(1.0 + i);
-//            a_r2[i] <= $shortrealtobits(1.0*N + i + 1);
-//            b_c1[i] <= $shortrealtobits(1.0 + i*2);;
-//            b_c2[i] <= $shortrealtobits(2 + i*2);
-//        end
-        a_r1 <= {$shortrealtobits(1.0),$shortrealtobits(2.0),$shortrealtobits(3.0)};
-        a_r2 <= {$shortrealtobits(4.0),$shortrealtobits(5.0),$shortrealtobits(6.0)};
-        b_c1 <= {$shortrealtobits(1.0),$shortrealtobits(2.0),$shortrealtobits(3.0)};
-        b_c2 <= {$shortrealtobits(4.0),$shortrealtobits(5.0),$shortrealtobits(6.0)};
+        for(int i=0; i<M; i++) begin
+            for(int l=0; l<N; l++) begin
+                a_r[i][l] <= $shortrealtobits(shortreal'(i*N +l+1)); 
+            end
+        end
         
-        ar1_strt <= 1'b1;
-        bc1_strt <= 1'b1;
+        for(int i=0; i<K; i++) begin
+            for(int l=0; l<N; l++) begin
+                b_c[i][l] <= $shortrealtobits(shortreal'(i*N +l+1)); 
+            end
+        end
         
-        r1c1_ctr <= '0;
-        r2c2_ctr <= '0;
+        for(int i=0; i<M+K; i++) begin
+            ctr[i] <= 'd0;
+        end 
     end
     
     else begin
-        a_r1 <= n_a_r1;
-        a_r2 <= n_a_r2;
-        b_c1 <= n_b_c1;
-        b_c2 <= n_b_c2;
+        for(int i=0; i<M; i++) begin
+            a_r[i] <= n_a_r[i]; 
+        end
         
-        ar1_strt <= n_ar1_strt;
-        bc1_strt <= n_bc1_strt;
+        for(int i=0; i<K; i++) begin
+            b_c[i] <= n_b_c[i];
+        end        
         
-        r1c1_ctr <= n_r1c1_ctr;
-        r2c2_ctr <= n_r2c2_ctr;
+        for(int i=0; i<M+K; i++) begin
+            ctr[i] <= n_ctr[i];
+        end 
     end
 
 end
@@ -135,90 +125,95 @@ end
 // Interface Logic
 always_comb begin
     // Edge PE connections
-    peifr1c1.row_in_valid = 1'b0;
-    peifr1c1.col_in_valid = 1'b0;
-    peifr1c2.col_in_valid = 1'b0;
-    peifr2c1.row_in_valid = 1'b0;
-    
-    // Edge PEs are have output port ready signals that are connected to any PEs tied to 1
-    peifr1c2.row_out_ready = 1'b1;
-    peifr2c2.row_out_ready = 1'b1;
-    peifr2c2.col_out_ready = 1'b1;
-    peifr2c1.col_out_ready = 1'b1;
-    
-    // Edge PEs whos data inputs are not connected to any PEs are tied to wrapper regs
-    peifr1c1.row_in_dat = a_r1[0];
-    peifr1c1.col_in_dat = b_c1[0];
-    peifr2c1.row_in_dat = a_r2[0];
-    peifr1c2.col_in_dat = b_c2[0];
-    
-    comp_done = peifr1c1.comp_done & peifr1c2.comp_done & peifr2c1.comp_done & peifr2c2.comp_done;
-    error = peifr1c1.error_bit & peifr1c2.error_bit & peifr2c1.error_bit & peifr2c2.error_bit;
-    
-    if(r1c1_ctr != N) begin
-        peifr1c1.row_in_valid = 1'b1;
-        peifr1c1.col_in_valid = 1'b1;
+    // Row 0 column inputs
+    for(int i=0; i<K; i++) begin
+        col_in_valid[i] = (ctr[i] == N) ? 1'b0 : 1'b1;
+        col_in_dat[i]   = b_c[i][0];
+    end
+    // Column 0 row inputs
+    for(int i=0; i<M; i++) begin
+        row_in_valid[i*K]   = (ctr[i+K] == N) ? 1'b0 : 1'b1;
+        row_in_dat[i*K]     = a_r[i][0];
     end
     
-    if(r2c2_ctr != N) begin
-        peifr2c1.row_in_valid = ar1_strt;
-        peifr1c2.col_in_valid = bc1_strt;
+    // Edge PEs are have output port ready signals that are connected to any PEs tied to 1
+    // Column K Row Output Ready 
+    for(int i=0; i<M; i++) begin
+        row_out_ready[i*K + K-1] = 1'b1;
+    end
+    
+    // Row M Col Output Ready
+    for(int i=0; i<K; i++) begin
+        col_out_ready[(M-1)*K + i] = 1'b1;
+    end
+    
+    done = 1'b1;
+    err = 1'b0;
+    
+    for(int i=0; i<M; i++) begin
+        for(int j=0; j<K; j++) begin
+            done   &= comp_done[i*K +j];
+            err         |= error_bit[i*K + j];
+        end
     end
     
     // Internal PE connections
-    // R1C1<->R1C2
-    peifr1c2.row_in_dat     = peifr1c1.row_out_dat;
-    peifr1c2.row_in_valid   = peifr1c1.row_out_valid;
-    peifr1c1.row_out_ready  = peifr1c2.row_in_ready;
+    for(int i=0; i<M; i++) begin
+        for(int j=0; j<K; j++) begin
+            if(i==0) begin // Row 0 PEs
+                if(~(j == 0)) begin
+                    row_in_dat[i*K+j]       = row_out_dat[i*K+j-1];
+                    row_in_valid[i*K+j]     = row_out_valid[i*K+j-1];
+                    row_out_ready[i*K+j-1]  = row_in_ready[i*K+j];
+                end
+            end
+            
+            else if(j==0) begin // Col 0 PEs
+                if(~(i==0)) begin
+                    col_in_dat[i*K+j]           = col_out_dat[(i-1)*K+j];
+                    col_in_valid[i*K+j]         = col_out_valid[(i-1)*K+j];
+                    col_out_ready[(i-1)*K+j]    = col_in_ready[i*K+j];
+                end
+            end
+            
+            else begin // Every other PE
+                row_in_dat[i*K+j]       = row_out_dat[i*K+j-1];
+                row_in_valid[i*K+j]     = row_out_valid[i*K+j-1];
+                row_out_ready[i*K+j-1]  = row_in_ready[i*K+j];
+                
+                col_in_dat[i*K+j]           = col_out_dat[(i-1)*K+j];
+                col_in_valid[i*K+j]         = col_out_valid[(i-1)*K+j];
+                col_out_ready[(i-1)*K+j]    = col_in_ready[i*K+j];
+            end
+        end
+    end
     
-    // R1C1<->R2C1 
-    peifr2c1.col_in_dat     = peifr1c1.col_out_dat;
-    peifr2c1.col_in_valid   = peifr1c1.col_out_valid;
-    peifr1c1.col_out_ready  = peifr2c1.col_in_ready;
-    
-    // R2C2<->R1C2
-    peifr2c2.col_in_dat     = peifr1c2.col_out_dat;
-    peifr2c2.col_in_valid   = peifr1c2.col_out_valid;
-    peifr1c2.col_out_ready  = peifr2c2.col_in_ready;
-    
-    // R2C2<->R2C1
-    peifr2c2.row_in_dat     = peifr2c1.row_out_dat;
-    peifr2c2.row_in_valid   = peifr2c1.row_out_valid;
-    peifr2c1.row_out_ready  = peifr2c2.row_in_ready;
 end
 
 // Shift Register and Counter Logic Logic
 always_comb begin
-    n_a_r1 = a_r1;
-    n_a_r2 = a_r2;
-    n_b_c1 = b_c1;
-    n_b_c2 = b_c2;
-    
-    n_ar1_strt = ar1_strt;
-    n_bc1_strt = bc1_strt;
-    
     // Counter used so that shift register stops shifting in data after all its operands are in the systolic array
-    // Essential so that valid signal goes low and comp_done reg doesnt get inccorectly cleared.
-    n_r1c1_ctr = r1c1_ctr;
-    n_r2c2_ctr = r2c2_ctr;
+    // Essential so that valid signal goes low and comp_done reg doesnt get inccorectly cleared. 
     
-    // Logic to control when subsequent rows begin shifting in their inputs
-//    if(n_r1c1_ctr == 1'd1) begin
-//        n_ar1_strt = 1'b1;
-//        n_bc1_strt = 1'b1;
-//    end
+    for(int i=0; i<M+K; i++) begin
+        n_ctr[i] = ctr[i];
+    end 
     
-    if(peifr1c1.row_in_valid & peifr1c1.row_in_ready & peifr1c1.col_in_valid & peifr1c1.col_in_ready)  begin
-        n_a_r1 = a_r1 >> SNGL_FLT_SIZE;
-        n_b_c1 = b_c1 >> SNGL_FLT_SIZE;
-        n_r1c1_ctr = r1c1_ctr + 'd1;
-    end    
+    for(int i=0; i<M; i++) begin // Only on rows along column 0
+        n_a_r[i] = a_r[i]; 
+        if(row_in_valid[i*K+0] & row_in_ready[i*K+0]) begin
+            n_a_r[i] = a_r[i] >> SNGL_FLT_SIZE;
+            n_ctr[i+K] = ctr[i+K] + 'd1;
+        end
+    end
     
-    if(peifr2c1.row_in_valid & peifr2c1.row_in_ready & peifr1c2.col_in_valid & peifr1c2.col_in_ready)  begin
-        n_a_r2 = a_r2 >> SNGL_FLT_SIZE;
-        n_b_c2 = b_c2 >> SNGL_FLT_SIZE;
-        n_r2c2_ctr = r2c2_ctr + 'd1;
-    end  
+    for(int i=0; i<K; i++) begin // Only on columns along row 0
+        n_b_c[i] = b_c[i];
+        if(row_in_valid[i] & row_in_ready[i]) begin
+            n_b_c[i] = b_c[i] >> SNGL_FLT_SIZE;
+            n_ctr[i] = ctr[i] + 'd1;
+        end
+    end 
 end
    
 endmodule

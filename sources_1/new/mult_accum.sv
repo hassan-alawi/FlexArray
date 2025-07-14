@@ -25,33 +25,38 @@ import dsp_sys_arr_pkg::*;
 
 module mult_accum_wrapper #(parameter IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, MUL_OUT_STG = 1, ADD_OUT_STG = 1, FPOPMODE_STG = 3, FPINMODE_STG = 1, MODE = 0)(
     input logic clk, nrst,
-    PE_if.pe peif
+    input logic col_in_valid, row_in_valid, col_out_ready, row_out_ready,
+    input single_float row_in_dat, col_in_dat, 
+    output logic col_in_ready, row_in_ready, error_bit, col_out_valid, row_out_valid, comp_done,
+    output error user, 
+    output single_float accum_sum, row_out_dat, col_out_dat
+//    PE_if.pe peif
     );
     
     // Accumulator Flip Flop
     single_float accumulator, out_dat;
     logic out_valid, out_ready,n_comp_done;
    
-    assign peif.accum_sum = accumulator;
+//    assign peif.accum_sum = accumulator;
     
     always_ff @(posedge clk, negedge nrst) begin
     
         if(~nrst) begin
-            accumulator <= 'B0;
-            peif.comp_done <= 'B0;
-            peif.user <= 'b0;
+            accum_sum <= 'B0;
+            comp_done <= 'B0;
+            user <= 'b0;
         end
         
         else begin
-            peif.user       <= t_user;
-            peif.comp_done  <= n_comp_done;
+            user       <= t_user;
+            comp_done  <= n_comp_done;
             
             if(out_valid) begin
-                accumulator <= out_dat;
+                accum_sum <= out_dat;
             end
             
             else begin
-                accumulator <= accumulator;
+                accum_sum <= accum_sum;
             end
         end
     end
@@ -86,13 +91,13 @@ module mult_accum_wrapper #(parameter IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, M
     .m_axis_result_tdata(out_dat),
     .m_axis_result_tuser(t_user));
     
-    assign a_dat = peif.row_in_dat;
-    assign b_dat = peif.col_in_dat;
+    assign a_dat = row_in_dat;
+    assign b_dat = col_in_dat;
     
-    assign peif.row_out_dat = latched_a_dat;
-    assign peif.col_out_dat = latched_b_dat;
+    assign row_out_dat = latched_a_dat;
+    assign col_out_dat = latched_b_dat;
     
-    assign peif.error_bit = |peif.user; // Expresses whether there has been overflow, bit 1, or underflow, bit 0
+    assign error_bit = |user; // Expresses whether there has been overflow, bit 1, or underflow, bit 0
     
     always_ff @(posedge clk, negedge nrst) begin
         if(~nrst) begin
@@ -119,19 +124,19 @@ module mult_accum_wrapper #(parameter IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, M
     
     n_a_read = a_read;
     n_latched_a_dat = latched_a_dat;
-    peif.row_in_ready = 1'B0;
+    row_in_ready = 1'B0;
     a_valid = 1'B0;
   
-    peif.row_out_valid = ~a_read;
+    row_out_valid = ~a_read;
     
-    if(peif.row_in_valid & a_ready & a_read) begin
-        n_latched_a_dat = peif.row_in_dat;
+    if(row_in_valid & a_ready & a_read) begin
+        n_latched_a_dat = row_in_dat;
         n_a_read = 1'B0;
-        peif.row_in_ready = 1'B1;
+        row_in_ready = 1'B1;
         a_valid = 1'B1;
     end
     
-    else if (peif.row_out_valid & peif.row_out_ready) begin
+    else if (row_out_valid & row_out_ready) begin
         n_a_read = 1'B1;
         n_latched_a_dat = 'b0;
     end
@@ -143,19 +148,19 @@ module mult_accum_wrapper #(parameter IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, M
     
     n_b_read = b_read;
     n_latched_b_dat = latched_b_dat;
-    peif.col_in_ready = 1'B0;
+    col_in_ready = 1'B0;
     b_valid = 1'B0;
 
-    peif.col_out_valid = ~b_read;
+    col_out_valid = ~b_read;
     
-    if(peif.col_in_valid & b_ready & b_read) begin
-        n_latched_b_dat = peif.col_in_dat;
+    if(col_in_valid & b_ready & b_read) begin
+        n_latched_b_dat = col_in_dat;
         n_b_read = 1'B0;
-        peif.col_in_ready = 1'B1;
+        col_in_ready = 1'B1;
         b_valid = 1'B1;
     end
     
-    else if (peif.col_out_valid & peif.col_out_ready) begin
+    else if (col_out_valid & col_out_ready) begin
         n_b_read = 1'B1;
         n_latched_b_dat = 'b0;
     end
@@ -165,14 +170,14 @@ module mult_accum_wrapper #(parameter IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, M
      // Result Logic 
     always_comb begin
     out_ready   = 1'B0;
-    n_comp_done = peif.comp_done;
+    n_comp_done = comp_done;
     
     if(out_valid) begin
         out_ready = 1'B1;
         n_comp_done = 1'b1;
     end
     
-    else if (peif.row_in_valid | peif.col_in_valid | ~a_ready | ~b_ready | processing) begin
+    else if (row_in_valid | col_in_valid | ~a_ready | ~b_ready | processing) begin
         n_comp_done = 1'b0;
     end
     
