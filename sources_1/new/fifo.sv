@@ -22,12 +22,12 @@
 `include "dsp_sys_arr_pkg.vh"
 import dsp_sys_arr_pkg::*;
 
-module fifo #(parameter SIZE=16)(
+module fifo #(parameter SIZE=16, BW = 2)(
 input logic clk, nRST,
 FIFO_if.fifo fifoif
     );
     
-    word_t [SIZE-1:0] fifo, n_fifo;
+    word_t [SIZE-1:0] [BW-1:0]  fifo, n_fifo;
     logic [$clog2(SIZE)-1:0] w_ptr, n_w_ptr, r_ptr, n_r_ptr;
     logic written, n_written;
     logic [$clog2(SIZE):0] n_ocp;
@@ -39,10 +39,10 @@ FIFO_if.fifo fifoif
     always_ff @(posedge clk, negedge nRST) begin
         
         if(~nRST) begin
-            fifo <= '0;
-            w_ptr <= '0;
-            r_ptr <= '0;
-            fifoif.ocp <= '0;
+            fifo <= '0; // Register array with BW * WORD_W size registers
+            w_ptr <= '0; // Write pointer to indicate where next write should be
+            r_ptr <= '0; // Read pointer to indicate which is next in que to be read
+            fifoif.ocp <= '0; // Indicates FIFO occupancy
         end
         
         else begin
@@ -60,62 +60,32 @@ FIFO_if.fifo fifoif
         n_fifo = fifo;
         n_ocp = fifoif.ocp;
         
+        // Simultaneous Push and Pop
         if(fifoif.push & fifoif.pop) begin
            n_fifo[w_ptr] = fifoif.dat_in;
            
            if(fifoif.is_empty) begin
                n_ocp = fifoif.ocp + 'd1;
-                
-//               if({1'b0,w_ptr} +'d1 == SIZE) begin
-//                n_w_ptr = 'd0;
-//               end
-//               else begin
-               n_w_ptr = (w_ptr + 'd1) % SIZE;
-//               end
+               n_w_ptr = (w_ptr + 'd1) % SIZE; // Wrap around logic for ptr
            
            end
            
            else begin
-//               if({1'b0,w_ptr} +'d1 == SIZE) begin
-//                    n_w_ptr = 'd0;
-//               end
-//               else begin
                  n_w_ptr = (w_ptr + 'd1) % SIZE;
-//               end
-               
-//               if({1'b0,r_ptr} +'d1 == SIZE) begin
-//                    n_r_ptr = 'd0;
-//               end
-//               else begin
-                n_r_ptr = (r_ptr + 'd1) % SIZE;
-//               end
+                 n_r_ptr = (r_ptr + 'd1) % SIZE;
            end
         end
         
         else if(fifoif.push & ~fifoif.is_full) begin
            n_fifo[w_ptr] = fifoif.dat_in;
            n_ocp = fifoif.ocp + 'd1;
-           
-//           if({1'b0,w_ptr} +'d1 == SIZE) begin
-//            n_w_ptr = 'd0;
-//           end
-           
-//           else begin
-            n_w_ptr = (w_ptr + 'd1) % SIZE;
-//           end
+           n_w_ptr = (w_ptr + 'd1) % SIZE;
         end
         
         else if(fifoif.pop & ~fifoif.is_empty) begin 
             n_ocp = fifoif.ocp - 'd1;
             n_fifo[r_ptr] = 'd0;
-            
-//           if({1'b0,r_ptr} +'d1 == SIZE) begin
-//            n_r_ptr = 'd0;
-//           end
-           
-//           else begin
             n_r_ptr = (r_ptr + 'd1) % SIZE;
-//           end
         end
     end
     

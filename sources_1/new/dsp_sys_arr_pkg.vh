@@ -28,6 +28,11 @@ package dsp_sys_arr_pkg;
 	logic dirty;
   } float_reg;
   
+  typedef struct packed {
+	word_t data;
+	logic dirty;
+  } holding_reg;
+  
   typedef enum logic [6:0]{
     MAC = 7'b0010001,
     NA  = 7'b0000000

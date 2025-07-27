@@ -25,7 +25,7 @@ import dsp_sys_arr_pkg::*;
 
 `timescale 1ns / 1ns
 
-module tb_dsp_wrapper;
+module tb_fma_wrapper;
 
     parameter PERIOD = 1.5;
     parameter VEC_SIZE = 16;
@@ -57,7 +57,7 @@ module tb_dsp_wrapper;
 
     PE_if peif();
     
-    dsp_wrapper DUT(CLK, nRST, peif);
+    FMA_wrapper DUT(CLK, nRST, peif);
      
     task init_tb();
         // Initializing Interface Input Signals

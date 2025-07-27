@@ -25,7 +25,7 @@ import dsp_sys_arr_pkg::*;
 
 //`timescale 1ns / 1ns
 
-module tb_mult_accum_wrapper;
+module tb_dsp_wrapper;
 
     parameter PERIOD = 1.5;
     parameter INPUT_BUFF = 1; 
@@ -92,7 +92,7 @@ module tb_mult_accum_wrapper;
     assign peif.accum_sum       = accum_sum;
     
     
-    mult_accum_wrapper #(
+    dsp_wrapper #(
     .IN_STG_1(IN_STG_1),
     .IN_STG_2(IN_STG_2),
     .MUL_PIP(MUL_PIP),
@@ -117,7 +117,7 @@ module tb_mult_accum_wrapper;
     .col_out_valid(col_out_valid),
     .row_out_valid(row_out_valid),
     .comp_done(comp_done),
-    .accum_sum(accum_sum),
+    .out(accum_sum),
     .row_out_dat(row_out_dat),
     .col_out_dat(col_out_dat));
      
@@ -234,8 +234,8 @@ module tb_mult_accum_wrapper;
     input shortreal row_in_dat, col_in_dat
     );
     
-    ex_row_in_ready = 1'b0;
-    ex_col_in_ready = 1'b0;
+    ex_row_in_ready = 1'b1;
+    ex_col_in_ready = 1'b1;
     ex_col_out_valid = 1'b0;
     ex_row_out_valid = 1'b0;
     
@@ -336,8 +336,8 @@ module tb_mult_accum_wrapper;
     ex_accum_sum, ex_row_out_dat, ex_col_out_dat, ex_user, ex_comp_done);
     
     @(negedge CLK);
-    ex_row_in_ready = 1'b0;
-    ex_col_in_ready = 1'b0;
+    ex_row_in_ready = 1'b1;
+    ex_col_in_ready = 1'b1;
     ex_col_out_valid = 1'b0;
     ex_row_out_valid = 1'b0;
     ex_comp_done     = 1'b0;

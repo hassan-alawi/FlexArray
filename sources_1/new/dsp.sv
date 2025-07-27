@@ -23,7 +23,7 @@
 `include "dsp_sys_arr_pkg.vh"
 import dsp_sys_arr_pkg::*;
 
-module dsp_wrapper(
+module FMA_wrapper(
     input logic clk, nrst,
     PE_if.pe peif
     );

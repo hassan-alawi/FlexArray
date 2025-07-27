@@ -26,9 +26,28 @@ module tb_sys_array;
 
 parameter PERIOD = 1.5;
 
-parameter M = 2;
-parameter N = 3;
-parameter K = 4;
+parameter BW = 256; // Must be power of 2 (min 2)
+parameter NUM_STRM_IN = 1; // Represents how many stream inputs of width BW needed to pass in whole column of A + row of B
+
+//`ifndef BW
+//    `define BW 50
+//`endif
+
+//`ifndef NUM_STRM_IN
+//    `define NUM_STRM_IN 1
+//`endif
+
+//localparam int BW = `BW;
+//localparam int NUM_STRM_IN = `NUM_STRM_IN;
+
+parameter BW_SCALE = shortreal'(NUM_STRM_IN)/2;
+
+parameter M = int'(BW*BW_SCALE);
+parameter N = 4;
+parameter K = M;
+
+parameter NO_MEM    = 1;
+parameter MEM_LAT   = 0;
 
 parameter IN_STG_1 = 1;
 parameter IN_STG_2 = 0;
@@ -42,17 +61,28 @@ parameter MODE = 0;
 logic CLK = 0, nRST;
 
 //Testbench Signals
-logic done, error;
-single_float out [0:(M*K)-1];
+shortreal A [0:M*N-1];
+shortreal B [0:N*K-1];
+shortreal C [0:M*K-1];
+single_float OUT [0:M*K-1];
+
+word_t [BW-1:0] test_in;
+int outer_ctr, inner_ctr;
+int passed_all_input;
+
 
 integer num_cycles, en_count, begin_sim;
 
 always #(PERIOD/2) CLK++;
 
+AXI_STREAM_if #(.BW(BW)) axi_str_if();
+
 sys_array #(
     .M(M),
     .N(N),
     .K(K),
+    .BW(BW),
+    .NO_MEM(NO_MEM),
     .IN_STG_1(IN_STG_1),
     .IN_STG_2(IN_STG_2),
     .MUL_PIP(MUL_PIP),
@@ -62,14 +92,18 @@ sys_array #(
     .FPINMODE_STG(FPINMODE_STG),
     .MODE(MODE)
     )
-sa(CLK,nRST,done,error,out);
+sa(CLK,nRST,axi_str_if);
 
 task init_tb();
-    nRST = 1'b1;  
+    nRST = 1'b1;
+    
+    {axi_str_if.in_stream,axi_str_if.in_valid,axi_str_if.out_ready} = '0;
+    test_in = 'd0;
 endtask
 
+
 always begin
-    @(CLK);
+    @(posedge CLK);
     if(en_count) num_cycles++;
 end
 
@@ -85,16 +119,15 @@ task reset_dut();
     
 endtask
 
-task check_mat();
 
-shortreal A [0:M*N];
-shortreal B [0:N*K];
-shortreal C [0:M*K];
+
+
+function void setup_mat();
 
 $display("Matrix A %2dx%2d\n",M,N);
 for (int i=0; i<M; i++) begin
     for(int j=0; j<N; j++) begin
-        A[i*N + j] =  shortreal'(i*N +j+1);
+        A[i*N + j] = (i*N +j+1);
         $write("%f ",A[i*N+j]);
     end
     $display("\n");
@@ -103,7 +136,7 @@ end
 $display("Matrix B %2dx%2d\n",N,K);
 for (int j=0; j<K; j++) begin
     for(int i=0; i<N; i++) begin
-        B[i*K + j] = shortreal'(j*N +i+1);
+        B[i*K + j] = (j*N +i+1);
     end
 end 
 
@@ -122,23 +155,43 @@ for (int i=0; i<M; i++) begin
     end
     $display("\n");
 end 
+endfunction
 
+
+
+
+
+
+
+function int check_mat();
+automatic int passed = 1;
 
 for (int i=0; i<M; i++) begin
     for(int j=0; j<K; j++) begin
-        if(out[i*K+j] != $shortrealtobits(C[i*K + j])) begin
-            $display("At %d, Incorrect computed value at row %d, column %d. \n Expected %f and got %f\n", $realtime,i+1,j+1,C[i*K + j],$bitstoshortreal(out[i*K+j]));
+        if(NO_MEM) begin
+            if(sa.out[i*K+j] != $shortrealtobits(C[i*K + j])) begin
+                $display("At %d, Incorrect computed value at row %d, column %d. \n Expected %f and got %f\n", $realtime,i+1,j+1,C[i*K + j],$bitstoshortreal(sa.out[i*K+j]));
+                passed = 0;
+            end
+        end
+        
+        else begin 
+            if(OUT[i*K+j] != $shortrealtobits(C[i*K + j])) begin
+                $display("At %d, Incorrect computed value at row %d, column %d. \n Expected %f and got %f\n", $realtime,i+1,j+1,C[i*K + j],$bitstoshortreal(OUT[i*K+j]));
+                passed = 0;
+            end
         end
     end
 end
 
-endtask
+return passed;
+endfunction
 
 function shortreal dot_product(
 input int a_row,
 input int b_col,
-input shortreal A [0:M*N],
-input shortreal B [0:N*K]
+input shortreal A [0:M*N-1],
+input shortreal B [0:N*K-1]
 );
 
 automatic shortreal result = 0;
@@ -149,22 +202,87 @@ end
 return result;
 endfunction
 
-function disp_out();
+function void disp_out();
     $display("Systolic Array Out %2dx%2d\n",M,K);
     for (int i=0; i<M; i++) begin
         for(int j=0; j<K; j++) begin
-            $write("%f ",$bitstoshortreal(out[i*K+j]));
+            if(NO_MEM) begin
+                $write("%f ",$bitstoshortreal(sa.out[i*K+j]));
+            end
+            
+            else begin
+                $write("%f ",$bitstoshortreal(OUT[i*K+j]));
+            end
         end
         $display("\n");
     end 
 endfunction 
+
+
+task stream_push();
+    // Begin of stream computation
+    for(int j=0; j<NUM_STRM_IN*N; j++) begin
+        
+        for(int i=0; i<BW/2; i++) begin
+            test_in[i*2]   = $shortrealtobits(A[(i+outer_ctr)*N + (N-inner_ctr-1)]);
+            test_in[(2*i)+1] = $shortrealtobits(B[((N-inner_ctr-1)*K) + i+outer_ctr]); 
+        end
+       
+        axi_str_if.in_valid = 1'b1;
+        axi_str_if.in_stream = test_in;
+       
+        outer_ctr += BW/2;
+    
+        if(outer_ctr == M) begin 
+            outer_ctr = 0;
+            inner_ctr += 1;
+        end
+        
+        if(inner_ctr == N) begin
+            passed_all_input = 1;
+        end
+        
+        @(negedge CLK);
+        
+        if(MEM_LAT) begin
+            axi_str_if.in_valid = 1'b0;
+            axi_str_if.in_stream = 'd0;
+            
+            repeat(MEM_LAT) @(negedge CLK);
+        end
+    end
+    
+    // Finish Streaming Input 
+    axi_str_if.in_valid = 1'b0;
+    axi_str_if.in_stream = 'd0;
+endtask 
+
+
+task stream_pop(input int comp_done = 1);
+    
+    for (int j=0; j<K; j+=2) begin
+        for(int i=0; i<M; i+=BW/2) begin 
+            
+            for(int l=0; l<BW/2; l++) begin
+                OUT[(i+l)*K + j] = axi_str_if.out_stream[l];
+                OUT[(i+l)*K + (j+1)] = axi_str_if.out_stream[l+BW/2];
+            end
+            
+            axi_str_if.out_ready = 1'b1;
+            
+            @(negedge CLK);
+        end
+    end
+    
+    axi_str_if.out_ready = 1'b0;
+endtask 
 
 initial begin
     begin_sim = 0;
     #(100 * 1ns);
     begin_sim = 1;
 end
-    
+
 
 initial begin
     init_tb();
@@ -173,10 +291,27 @@ initial begin
     num_cycles = 0;
     en_count = 1;
     
-    wait(done);
     
-    $display("Finished Computation in %d cycles", num_cycles);  
-    check_mat();
+    setup_mat();
+    if(!NO_MEM) begin
+        stream_push();
+        wait(axi_str_if.out_valid);
+        @(negedge CLK);
+        stream_pop(); 
+    end  
+    
+    else begin
+        wait(sa.done);
+    end
+    
+    $display("\n\n\n\n/////////////////////////////////////////////////////////");
+    $display("Computation Results");
+    $display("/////////////////////////////////////////////////////////");
+    $display("Succesfull Computation: %s",check_mat() ? "True" : "False");
+    $display("Finished Computation in %d cycles", num_cycles);
+    $display("Floating Point Operations done: %d", M*K*N);
+    $display("System Throughput (Assuming period of %.2f ns): %.2f GFLOPS", PERIOD, (shortreal'(M*K*N)/(PERIOD*num_cycles)));    
+    $display("\n");
     disp_out();
     
     $finish;

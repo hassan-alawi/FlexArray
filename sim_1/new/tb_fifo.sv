@@ -26,6 +26,7 @@ module tb_fifo;
 
 parameter PERIOD = 1.5;
 parameter SIZE = 16;
+parameter BW = 1;
 
 logic CLK = 0, nRST;
 
@@ -47,9 +48,9 @@ int test_vector [0:2*SIZE];
 
 always #(PERIOD/2) CLK++;
 
-FIFO_if #(.SIZE(SIZE)) fifoif();
+FIFO_if #(.SIZE(SIZE),.BW(BW)) fifoif();
 
-fifo #(.SIZE(SIZE)) DUT (CLK,nRST,fifoif);
+fifo #(.SIZE(SIZE),.BW(BW)) DUT (CLK,nRST,fifoif);
 
 task init_tb();
     {fifoif.dat_in, fifoif.push, fifoif.pop} = '0;

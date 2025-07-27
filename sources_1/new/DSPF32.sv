@@ -29,7 +29,6 @@
 // 1: Multiply 
 // TBD
 
-`include "PE_IF.vh"
 `include "dsp_sys_arr_pkg.vh"
 import dsp_sys_arr_pkg::*;
 
@@ -56,15 +55,18 @@ output error m_axis_result_tuser);
 
    parameter LAT = IN_STG_1 + IN_STG_2 + MUL_PIP + MUL_OUT_STG + ADD_OUT_STG; // Baseline Latency is 0 (Can do single cycle operation according to behavioral sim)
    
+   // Internal wrapper signals
    logic add_overflow, add_underflow, add_invalid, mul_overflow, mul_underflow, mul_invalid, comp_ready, is_add, comp_done;
    single_float add_out, mul_out, a_dat, b_dat, n_a_dat, n_b_dat;
    dsp_add_conf fpopmode;
    error add_user, mul_user, n_add_user, n_mul_user;
    float_reg a_in, b_in, n_a_in, n_b_in, mul_out_latch, add_out_latch, n_mul_out_latch, n_add_out_latch;
-   float_reg b_dat_2; // To accomodate cycle delay due to second A input stage
+   float_reg b_dat_2;
    logic [LAT:0] pip_stg_ocp, n_pip_stg_ocp;
    
    // Configuring DSP Primitive
+   // Can expand functionality of the dsp primitive wrapper by adding more cases to the case statement 
+   // To add more FPOPMODE configurations, modify the dsp_add_conf enum type in dsp_sys_arr_pkg
    always_comb begin
     fpopmode = NA;
     is_add = 0;
@@ -90,16 +92,16 @@ output error m_axis_result_tuser);
    
    always_ff @(posedge aclk, negedge aresetn) begin
     if(~aresetn) begin
-        mul_out_latch   <= '0;
-        add_out_latch   <= '0;
-        a_in            <= '0;
-        b_in            <= '0;
-        b_dat_2          <= '0;
-        a_dat           <= '0;
-        b_dat           <= '0;
-        add_user        <= '0;
-        mul_user        <= '0;
-        pip_stg_ocp     <= '0; 
+        mul_out_latch   <= '0; // Latches multiply output
+        add_out_latch   <= '0; // Latches adder stage output
+        a_in            <= '0; // Holds A data input until B data arrives to load into DSP (This is how blocking mode behaviour is implemented)
+        b_in            <= '0; // Holds B data input until B data arrives to load into DSP 
+        a_dat           <= '0; // A Data register that feeds into DSP. Loaded after all operands ready
+        b_dat           <= '0; // B Data register that feeds into DSP. Loaded after all operands ready
+        b_dat_2         <= '0; // Second B data register, only used if there is second A input stage to match timing of A input into multiplier
+        add_user        <= '0; // Latches add output error signals (more details on format of user signal is in dsp_sys_arr_pkg)
+        mul_user        <= '0; // Latches multiply out error signals
+        pip_stg_ocp     <= '0; // Tracks if a particular stage of the pipeline is occupied
     end
     
     else begin
@@ -123,15 +125,15 @@ output error m_axis_result_tuser);
    
    // Input Port AXI Logic (Implements Blocking mode as described in the User Guide)
    always_comb begin
-    s_axis_a_tready = ~a_in.dirty; // Only accept input if holding registers is not full  
+    s_axis_a_tready = ~a_in.dirty; // Only accept input if holding registers are not full  
     s_axis_b_tready = ~b_in.dirty;
     
+    // Indicates whether data is ready to be loaded into DSP Primitive
+    // Checks if data is ready for both A and B port either from occupation of holding registers or availaibility on AXI IN lines
     comp_ready      = (a_in.dirty & b_in.dirty) | (a_in.dirty & s_axis_b_tvalid & s_axis_b_tready) | (b_in.dirty & s_axis_a_tvalid & s_axis_a_tready) | (s_axis_a_tvalid & s_axis_b_tvalid & s_axis_a_tready & s_axis_b_tready);
     
     n_a_in = a_in;
     n_b_in = b_in;
-    
-
     n_a_dat = a_dat;
     n_b_dat = IN_STG_2 ? b_dat_2 : b_dat;
     
@@ -139,6 +141,9 @@ output error m_axis_result_tuser);
     
     // In the case of simultaneous or sequential input passing, inputs must be passed into the pipeline in the same cycle and 
     // the holding registers must be cleared s.t. on the next cycle they are ready to receive data
+    
+    // Simulataneous input passing allows for bypassing the a/b_in holding registers and going straight to the DSP primitive
+    // Allows for streaming mode input into PE, where ready signal is never low
     if(comp_ready) begin
         n_b_in  = '0;
         n_a_in  = '0;
@@ -148,6 +153,7 @@ output error m_axis_result_tuser);
         n_pip_stg_ocp = (pip_stg_ocp >> 1) | (1'd1 << LAT); 
     end
     
+    // Logic to fill holding registers in case of sequential input passing
     else begin
         if(s_axis_a_tvalid & s_axis_a_tready) begin
             n_a_in.dirty    = 1'b1;
@@ -160,6 +166,7 @@ output error m_axis_result_tuser);
         end
     end
     
+    // If data has been passed into first stage of pipeline, input registers should be cleared to avoid duplicate inputs, and incorrect accumulation
     if(pip_stg_ocp[LAT]) begin
         n_a_dat = '0;
         n_b_dat = '0;
@@ -173,20 +180,22 @@ output error m_axis_result_tuser);
     n_mul_out_latch         = mul_out_latch;
     
     m_axis_result_tvalid    = comp_done;
-    processing              = |pip_stg_ocp;
+    processing              = |pip_stg_ocp; // If any stage of pipeline is occupied then, data is being processed
     
     n_mul_user              = mul_user;
     n_add_user              = add_user;
    
-    
-    if(m_axis_result_tready) begin
+    // If PE saw our output, we can clear the output latches
+    if(m_axis_result_tready & m_axis_result_tvalid) begin
         n_add_out_latch = '0;
         n_mul_out_latch = '0;
         n_mul_user      = '0;
         n_add_user      = '0;
     end
     
+    
     if(ADD_OUT_STG) begin
+        // If there is an accumulator stage, we need to latch multiplier and adder output seperatley, because there is a one cycle delay between them
         if(pip_stg_ocp[0]) begin
          
             n_add_out_latch.dirty   = 1'b1;

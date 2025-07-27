@@ -4,13 +4,13 @@
 `include "dsp_sys_arr_pkg.vh"
 `timescale 1ns / 1ps
 
-interface FIFO_if #(parameter SIZE = 16);
+interface FIFO_if #(parameter SIZE = 16, BW=1);
   // import types
   import dsp_sys_arr_pkg::*;
   
   // Interface Signals
   logic push, pop, is_full, is_empty;
-  word_t dat_in, dat_out;
+  word_t [BW-1:0] dat_in, dat_out;
   logic [$clog2(SIZE):0] ocp;
 
   // FIFO ports
@@ -19,8 +19,8 @@ interface FIFO_if #(parameter SIZE = 16);
     output is_full, is_empty, dat_out, ocp
   );
 
-  // FIFO tb
-  modport tb (
+  // FIFO master
+  modport master (
     output push, pop, dat_in,
     input is_full, is_empty, dat_out, ocp
   );
