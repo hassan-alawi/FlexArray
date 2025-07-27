@@ -22,7 +22,7 @@ To find wave config files, navigate to wavecnfgs/
 &darr;&rarr; **fifo_out**: Connected to output AXI-stream  
 &darr;&rarr; **dispatcher**: Intermediarry between AXI-Stream and systolic array. Loads and offloads data to and from systolic array  
 &darr;&rarr; **dsp_wrapper**: PE with AXI interface logic, moves operands between neighboring PEs  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;&rarr; **dsp_prim**: Wrapper for DSP primitive. Handles AXI interface blocking mode behavior. Doesn't allow new inputs to pass untill all &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;operands are ready to be passed to the DSP. Fully pipelined operation, so after pipeline full, output data is ready every cycle.  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;&rarr; **dsp_prim**: Wrapper for DSP primitive. Handles AXI interface blocking mode behavior. Doesn't allow new inputs to pass untill all operands are ready to be passed to the DSP. Fully pipelined operation, so after pipeline full, output data is ready every cycle.  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;&rarr;**DSPFP32**: Xilinix DSP single precision floating point primitive 
 ## Usage
 
@@ -76,7 +76,7 @@ For input data, the dispatcher utilizes an interleaved operand format that looks
 
 The dispatcher attempts to pass along a column of A and a row of B, for one of N iterations  
    
-On each cycle the dispatcher takes [a<sub>n_j</sub>, b<sub>j,n</sub>, ..., a<sub>n+BW/2,j</sub>, b<sub>j,n+BW/2</sub>] operands and passes them to their edge PE. This ensures that on each cycle, PE<sub>i,j</sub> has both its operands ready to be processed as well as all PEs to the left or above it  
+On each cycle the dispatcher takes **[a<sub>n_j</sub>, b<sub>j,n</sub>, ..., a<sub>n+BW/2,j</sub>, b<sub>j,n+BW/2</sub>]** operands and passes them to their edge PE. This ensures that on each cycle, PE<sub>i,j</sub> has both its operands ready to be processed as well as all PEs to the left or above it  
 
 The bigger the BW relative to M/K, the faster a row or column of A and B respectivley is passed into the systolic array 
 
