@@ -26,7 +26,7 @@ module tb_sys_array;
 
 parameter PERIOD = 1.5;
 
-parameter BW = 256; // Must be power of 2 (min 2)
+parameter BW = 16; // Must be power of 2 (min 2)
 parameter NUM_STRM_IN = 1; // Represents how many stream inputs of width BW needed to pass in whole column of A + row of B
 
 //`ifndef BW
@@ -46,7 +46,7 @@ parameter M = int'(BW*BW_SCALE);
 parameter N = 4;
 parameter K = M;
 
-parameter NO_MEM    = 1;
+parameter NO_MEM    = 0;
 parameter MEM_LAT   = 0;
 
 parameter IN_STG_1 = 1;
@@ -75,7 +75,8 @@ integer num_cycles, en_count, begin_sim;
 
 always #(PERIOD/2) CLK++;
 
-AXI_STREAM_if #(.BW(BW)) axi_str_if();
+AXI_STREAM_if #(.BW(BW)) in_str_if();
+AXI_STREAM_if #(.BW(BW)) out_str_if();
 
 sys_array #(
     .M(M),
@@ -92,12 +93,12 @@ sys_array #(
     .FPINMODE_STG(FPINMODE_STG),
     .MODE(MODE)
     )
-sa(CLK,nRST,axi_str_if);
+sa(CLK,nRST,in_str_if,out_str_if);
 
 task init_tb();
     nRST = 1'b1;
     
-    {axi_str_if.in_stream,axi_str_if.in_valid,axi_str_if.out_ready} = '0;
+    {in_str_if.in_stream,in_str_if.in_valid,out_str_if.out_ready} = '0;
     test_in = 'd0;
 endtask
 
@@ -228,8 +229,8 @@ task stream_push();
             test_in[(2*i)+1] = $shortrealtobits(B[((N-inner_ctr-1)*K) + i+outer_ctr]); 
         end
        
-        axi_str_if.in_valid = 1'b1;
-        axi_str_if.in_stream = test_in;
+        in_str_if.in_valid = 1'b1;
+        in_str_if.in_stream = test_in;
        
         outer_ctr += BW/2;
     
@@ -245,16 +246,16 @@ task stream_push();
         @(negedge CLK);
         
         if(MEM_LAT) begin
-            axi_str_if.in_valid = 1'b0;
-            axi_str_if.in_stream = 'd0;
+            in_str_if.in_valid = 1'b0;
+            in_str_if.in_stream = 'd0;
             
             repeat(MEM_LAT) @(negedge CLK);
         end
     end
     
     // Finish Streaming Input 
-    axi_str_if.in_valid = 1'b0;
-    axi_str_if.in_stream = 'd0;
+    in_str_if.in_valid = 1'b0;
+    in_str_if.in_stream = 'd0;
 endtask 
 
 
@@ -264,17 +265,17 @@ task stream_pop(input int comp_done = 1);
         for(int i=0; i<M; i+=BW/2) begin 
             
             for(int l=0; l<BW/2; l++) begin
-                OUT[(i+l)*K + j] = axi_str_if.out_stream[l];
-                OUT[(i+l)*K + (j+1)] = axi_str_if.out_stream[l+BW/2];
+                OUT[(i+l)*K + j] = out_str_if.out_stream[l];
+                OUT[(i+l)*K + (j+1)] = out_str_if.out_stream[l+BW/2];
             end
             
-            axi_str_if.out_ready = 1'b1;
+            out_str_if.out_ready = 1'b1;
             
             @(negedge CLK);
         end
     end
     
-    axi_str_if.out_ready = 1'b0;
+    out_str_if.out_ready = 1'b0;
 endtask 
 
 initial begin
@@ -295,7 +296,7 @@ initial begin
     setup_mat();
     if(!NO_MEM) begin
         stream_push();
-        wait(axi_str_if.out_valid);
+        wait(out_str_if.out_valid);
         @(negedge CLK);
         stream_pop(); 
     end  

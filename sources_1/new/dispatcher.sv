@@ -23,14 +23,11 @@
 `include "dsp_sys_arr_pkg.vh"
 import dsp_sys_arr_pkg::*;
 
-module dispatcher #(parameter M = 2, N = 3, K = 2, BW = 2, MODE=0)(
+module dispatcher #(parameter M = 2, N = 3, K = 2, BW = 2)(
     input logic clk, nrst,
-    AXI_STREAM_if.slave axi_str_if,
     FIFO_if.master in_fifo_if,
-    FIFO_if.master out_fifo_if,
-    input logic done, err,
     input logic col_in_ready [0:K-1], row_in_ready [0:M-1],
-    input word_t out [0:M*K-1],
+    output logic done_dispatch,
     output word_t row_in_dat [0:M-1], col_in_dat [0:K-1], 
     output logic col_in_valid [0:K-1], row_in_valid [0:M-1]
     );
@@ -44,21 +41,12 @@ module dispatcher #(parameter M = 2, N = 3, K = 2, BW = 2, MODE=0)(
     logic [$clog2(M):0] inner_ctr,n_inner_ctr; // Counts which column of A and which row of B we are on 
     logic [$clog2(M):0] outer_ctr,n_outer_ctr; // Counts which row of A and which column of B we are on
     
-    logic n_done_dispatch, done_dispatch;
-    logic n_fill_done, row_ready, col_ready, n_error, fill_done,n_done;
+    logic n_done_dispatch;
+    logic row_ready, col_ready;
     logic valid; // Checks to see if valid signal is asserted
     logic fill_cond;
     
     logic outer_ctr_roll, inner_ctr_roll;
-    
-    
-    assign axi_str_if.in_ready  = ~in_fifo_if.is_full & ~done_dispatch; // Only accept data if input FIFO has space and the dispatcher hasn't already passed all of A and B
-    assign in_fifo_if.push       = axi_str_if.in_valid; // Push into Input fifo if valid signal is asserted (if full, FIFO logic prevents it from updating its state)
-    assign in_fifo_if.dat_in     = axi_str_if.in_stream; 
-    
-    assign axi_str_if.out_valid     = ~out_fifo_if.is_empty & axi_str_if.done; // Valid is output if the systolic array has finished its computation and output fifo has data to pass on)
-    assign out_fifo_if.pop          = axi_str_if.out_ready & axi_str_if.out_valid; // Pop data if recepeint is ready to accept data and if we are ready to give it
-    assign axi_str_if.out_stream    = out_fifo_if.dat_out;
     
     always_ff @(posedge clk, negedge nrst) begin
         if(~nrst) begin
@@ -66,9 +54,6 @@ module dispatcher #(parameter M = 2, N = 3, K = 2, BW = 2, MODE=0)(
             inner_ctr    <= '0; // Counts which along the N dimension (which column of A and row of B we are on)
             outer_ctr    <= '0; // Counts which along the M dimension (which row of A and column of B we are on)
             done_dispatch <= '0; // Latches when all rows of A and columns of B are shifted into the systolic array
-            axi_str_if.done <= '0; // Latched when done signal from systolic array is active
-            axi_str_if.err <= '0; // Latched when err signal from systolic array is active
-            fill_done <= '0; // Latched when all data from the systolic array output has been put into the output buffer
         end
         
         else begin
@@ -76,9 +61,6 @@ module dispatcher #(parameter M = 2, N = 3, K = 2, BW = 2, MODE=0)(
             inner_ctr    <= n_inner_ctr;
             outer_ctr    <= n_outer_ctr;
             done_dispatch <= n_done_dispatch;
-            axi_str_if.done <= n_done;
-            fill_done <= n_fill_done;
-            axi_str_if.err <= n_error;
         end
     end
     
@@ -94,11 +76,7 @@ module dispatcher #(parameter M = 2, N = 3, K = 2, BW = 2, MODE=0)(
     // Default Values
         n_dispatch_regs     = dispatch_regs;
         in_fifo_if.pop      = 1'b0;
-        out_fifo_if.push    = 1'b0;
-        out_fifo_if.dat_in  = '0;
         n_done_dispatch     = done_dispatch;
-        n_done              = done ? 1'b1 : axi_str_if.done;
-        n_error             = err ? 1'b1 : axi_str_if.err;
         
         row_ready = 1'b1;
         col_ready = 1'b1;
@@ -108,7 +86,6 @@ module dispatcher #(parameter M = 2, N = 3, K = 2, BW = 2, MODE=0)(
         
         n_inner_ctr         = inner_ctr;
         n_outer_ctr         = outer_ctr;
-        n_fill_done         = fill_done;
         
         for(int i=0; i<M; i++) begin
             row_in_valid[i] = '0;
@@ -164,30 +141,6 @@ module dispatcher #(parameter M = 2, N = 3, K = 2, BW = 2, MODE=0)(
             end
         end
    
-        
-        // Output Collection operation 
-        // Start collecting data when done signal is latched, we are done dispatching, and if we have not finished filling the output buffer
-        if(done_dispatch & axi_str_if.done & ~fill_done) begin
-            outer_ctr_roll = outer_ctr == M-BW/2;
-            inner_ctr_roll = inner_ctr == K-2;
-            
-            out_fifo_if.push = 1'b1;
-            
-            // On every cycle, BW/2 datums from 2 adajacent columns, selected by inner counter, are pushed to the output FIFO
-            for(int i=0; i<BW/2; i++) begin
-                out_fifo_if.dat_in[i]       = out[((i+outer_ctr)*K) + inner_ctr];
-                out_fifo_if.dat_in[i+BW/2]     = out[((i+outer_ctr)*K) + (inner_ctr+1)];
-            end
-         
-            
-            n_outer_ctr = outer_ctr_roll ? 'd0 : outer_ctr + BW/2;
-            n_inner_ctr = inner_ctr_roll&outer_ctr_roll ? 'd0 : outer_ctr_roll ? inner_ctr + 'd2 : inner_ctr;
-            
-            // Fill is done once the counters both rollover
-            if(inner_ctr_roll & outer_ctr_roll) begin
-                n_fill_done = 1'b1;
-            end
-        end   
     end
 
     

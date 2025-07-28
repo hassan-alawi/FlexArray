@@ -13,12 +13,17 @@ interface AXI_STREAM_if #(parameter BW=2);
   logic                 done, err;
   word_t [BW-1:0]       in_stream, out_stream;
 
-  // AXI_STREAM Slave ports
-  modport slave (
-    input in_valid, out_ready,
+  // AXI_STREAM Input ports
+  modport in (
+    input in_valid,
     input in_stream,
-    output done, err,
-    output in_ready, out_valid,
+    output in_ready
+  );
+  
+  // AXI_STREAM Output ports
+  modport out (
+    input out_ready,
+    output out_valid,
     output out_stream
   );
 

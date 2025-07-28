@@ -44,7 +44,8 @@ import dsp_sys_arr_pkg::*;
 
 module sys_array #(parameter M = 2, N = 2, K = 2, BW = 2, NO_MEM = 0, IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, MUL_OUT_STG = 1, ADD_OUT_STG = 1, FPOPMODE_STG = 1, FPINMODE_STG = 1, MODE = 0)(
 input logic clk, nrst,
-AXI_STREAM_if.slave axi_str_if);
+AXI_STREAM_if.in in_str_if,
+AXI_STREAM_if.out out_str_if);
 
 // PE Signals
 logic col_in_valid [0:M*K-1], row_in_valid [0:M*K-1], col_out_ready [0:M*K-1], row_out_ready                                            [0:M*K-1];
@@ -52,10 +53,11 @@ word_t row_in_dat [0:M*K-1], col_in_dat                                         
 logic col_in_ready [0:M*K-1], row_in_ready [0:M*K-1], error_bit [0:M*K-1], col_out_valid [0:M*K-1], row_out_valid [0:M*K-1], comp_done  [0:M*K-1];
 error user                                                                                                                              [0:M*K-1];
 word_t row_out_dat [0:M*K-1], col_out_dat                                                                                               [0:M*K-1];
-word_t out                                                                                                                              [0:M*K-1];
-logic done, err;
+word_t out                                                                                                                             [0:M*K-1];
 
 // Dispatcher I/O signals
+logic done, err, done_dispatch;
+logic sys_comp_done, sys_comp_err;
 logic edge_col_in_valid [0:K-1], edge_row_in_valid [0:M-1], edge_row_in_ready [0:M-1], edge_col_in_ready [0:K-1];
 word_t edge_col_in_dat[0:K-1], edge_row_in_dat [0:M-1];
 
@@ -75,8 +77,18 @@ FIFO_if #(.SIZE(M*K), .BW(BW))         out_fifo_if();
 fifo #(.SIZE((M*N + K*N)/BW), .BW(BW)) fifo_in(clk, nrst, in_fifo_if);
 fifo #(.SIZE((M*K)/BW), .BW(BW)) fifo_out(clk, nrst, out_fifo_if);
 
-dispatcher #(.M(M), .N(N), .K(K), .BW(BW)) dispatch (clk,nrst,axi_str_if,in_fifo_if,out_fifo_if,
-done,err,edge_col_in_ready,edge_row_in_ready,out,edge_row_in_dat,edge_col_in_dat,edge_col_in_valid,edge_row_in_valid);
+assign in_str_if.in_ready    = ~in_fifo_if.is_full & ~done_dispatch; // Only accept data if input FIFO has space and the dispatcher hasn't already passed all of A and B
+assign in_fifo_if.push       = in_str_if.in_valid; // Push into Input fifo if valid signal is asserted (if full, FIFO logic prevents it from updating its state)
+assign in_fifo_if.dat_in     = in_str_if.in_stream; 
+
+assign out_str_if.out_valid     = ~out_fifo_if.is_empty & sys_comp_done; // Valid is output if the systolic array has finished its computation and output fifo has data to pass on)
+assign out_fifo_if.pop          = out_str_if.out_ready & out_str_if.out_valid; // Pop data if recepeint is ready to accept data and if we are ready to give it
+assign out_str_if.out_stream    = out_fifo_if.dat_out;
+
+dispatcher #(.M(M), .N(N), .K(K), .BW(BW)) dispatch (clk,nrst,in_fifo_if,edge_col_in_ready,edge_row_in_ready,done_dispatch,
+edge_row_in_dat,edge_col_in_dat,edge_col_in_valid,edge_row_in_valid);
+
+collector #(.M(M), .K(K), .BW(BW)) collect (clk,nrst,out_fifo_if,out,done_dispatch,done,err,sys_comp_done,sys_comp_err);
 
 // If we are in MEM mode, connect dispatcher I/O signals to systolic array
 if (!NO_MEM) begin

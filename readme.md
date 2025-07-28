@@ -20,10 +20,13 @@ To find wave config files, navigate to wavecnfgs/
 **sys_array**: Contains array of PEs and system interface, as well as all PE interconnect logic  
 &darr;&rarr; **fifo_in**: Connected to input AXI-stream  
 &darr;&rarr; **fifo_out**: Connected to output AXI-stream  
-&darr;&rarr; **dispatcher**: Intermediarry between AXI-Stream and systolic array. Loads and offloads data to and from systolic array  
+&darr;&rarr; **dispatcher**: Intermediarry between AXI-Stream and systolic array. Loads to systolic array  
+&darr;&rarr; **collector**: Intermediarry between systolic array and AXI-Stream. Offloads data from systolic array  
 &darr;&rarr; **dsp_wrapper**: PE with AXI interface logic, moves operands between neighboring PEs  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;&rarr; **dsp_prim**: Wrapper for DSP primitive. Handles AXI interface blocking mode behavior. Doesn't allow new inputs to pass untill all operands are ready to be passed to the DSP. Fully pipelined operation, so after pipeline full, output data is ready every cycle.  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;&rarr;**DSPFP32**: Xilinix DSP single precision floating point primitive 
+
+![systolic_array_top_level](/uploads/479734d3060b3eb2ba24d3e43eb9c38c/systolic_array_top_level.png)
 ## Usage
 
 #### Configuring the PE

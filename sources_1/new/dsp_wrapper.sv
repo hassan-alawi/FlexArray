@@ -62,7 +62,7 @@ module dsp_wrapper #(parameter IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, MUL_OUT_
         end
         
         else begin
-            user       <= t_user;
+            user       <= t_user | user; // So that any indication of an error is perserved
             comp_done  <= n_comp_done;
             
             if(out_valid) begin
