@@ -60,10 +60,10 @@ Total number of operations = N\*M\*K
 
 #### Configuring System Interface
 Users of the device can opt out of using the AXI-stream system interface and simply modeling how long it takes the systolic array to start and finish a computation, with data preloaded. To do so, set the parameter:
-- NO_MEM: Removes AXI-stream interface, which includes the input/out FIFOs and dispatcher, and uses pre-loaded shift registers, connected to edge PEs, that pass data when PE is ready to accept it. There is a per-edge PE counter that counts how many operands passed in to ensure only N shifts occur. tb_sys_array polls for the done signal then reads the array of output signal and compares it to the computed output matrix to check for correctnes. The TB also has a cycle counter to measure compute latency
+- NO_MEM: Removes AXI-stream interface, which includes the input/out FIFOs,collector and dispatcher, and uses pre-loaded shift registers, connected to edge PEs, that pass data when PE is ready to accept it. There is a per-edge PE counter that counts how many operands passed in to ensure only N shifts occur. tb_sys_array polls for the done signal then reads the array of output signal and compares it to the computed output matrix to check for correctnes. The TB also has a cycle counter to measure compute latency
 
-Otherwise if you want an accurate system simulation you would set NO_MEM to 0. This removes the shift register and counter logic and replaces it with dispatcher. This unit reads from the input FIFO and distributes the operands to their associated edge PEs, and collects the output when done to fill the output FIFO. You can configure the system interface and the dispatcher with the parameter:  
-- BW: Bus Width (in terms of 32-bit Words). The bigger the BW, the wider the FIFO registers are, and the more edge PEs get passed their operands in a single cycle 
+Otherwise if you want an accurate system simulation you would set NO_MEM to 0. This removes the shift register and counter logic and replaces it with the dispatcher and collector. This unit reads from the input FIFO and distributes the operands to their associated edge PEs, and collects the output when done to fill the output FIFO. You can configure the system interface and the collector and dispatcher with the parameter:  
+- BW: Bus Width (in terms of 32-bit Words). The bigger the BW, the more PEs get passed their operands and their outputs pulled in a single cycle 
 
 The use of the dispatcher and its design constrains the systolic array parameters. The constraints are:  
 - BW is a multiple of 2 (Minimum of 2)
