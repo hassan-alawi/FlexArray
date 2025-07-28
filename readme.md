@@ -83,7 +83,7 @@ On each cycle the dispatcher takes **[a<sub>n_j</sub>, b<sub>j,n</sub>, ..., a<s
 
 The bigger the BW relative to M/K, the faster a row or column of A and B respectivley is passed into the systolic array 
 
-For the output data, the dispatcher also follows an interleaved model in the sense that it packs an element alongside its neighbor in the adjacent column as follows:  
+For the output data, the collector also follows an interleaved model in the sense that it packs an element alongside its neighbor in the adjacent column as follows:  
 **[c<sub>1,1</sub>, c<sub>1,2</sub>, ... , c<sub>1+BW/2,1</sub>, c<sub>1+BW/2,2</sub>]**   
   
 In a single output FIFO register this is what you would find, or a single stream cycle of width BW. The larger BW again, the faster the output of the systolic array is read 
