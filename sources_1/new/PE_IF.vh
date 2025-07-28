@@ -11,11 +11,11 @@ interface PE_if;
   // Interface Signals
   logic         col_in_ready, row_in_ready, col_in_valid, row_in_valid, error_bit;
   logic         col_out_ready, row_out_ready, col_out_valid, row_out_valid, comp_done;
-  error         user;
-  single_float  row_in_dat, col_in_dat, accum_sum, row_out_dat, col_out_dat;
+  logic [1:0]   user;
+  logic [31:0]  row_in_dat, col_in_dat, accum_sum, row_out_dat, col_out_dat;
 
   // PE ports
-  modport pe (
+  modport slave (
     input   col_in_valid, row_in_valid, col_out_ready, row_out_ready,
     input   row_in_dat, col_in_dat, 
     output  col_in_ready, row_in_ready, error_bit, col_out_valid, row_out_valid, comp_done,
@@ -23,7 +23,7 @@ interface PE_if;
   );
 
   // PE tb
-  modport tb (
+  modport master (
     input   col_in_ready, row_in_ready, error_bit, col_out_valid, row_out_valid, comp_done,
     input   user, accum_sum, row_out_dat, col_out_dat,
     output  col_in_valid, row_in_valid, col_out_ready, row_out_ready, 

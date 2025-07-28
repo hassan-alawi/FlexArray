@@ -23,7 +23,7 @@
 module collector #(parameter M = 2, K = 2, BW = 2)(
     input logic clk, nrst,
     FIFO_if.master out_fifo_if,
-    input word_t out [0:M*K-1],
+    input logic [31:0] out [0:M*K-1],
     input logic done_dispatch, done, err,
     output logic sys_comp_done, sys_comp_err
     );

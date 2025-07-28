@@ -24,7 +24,7 @@ import dsp_sys_arr_pkg::*;
 
 module fifo #(parameter SIZE=16, BW = 2)(
 input logic clk, nRST,
-FIFO_if.fifo fifoif
+FIFO_if.slave fifoif
     );
     
     word_t [SIZE-1:0] [BW-1:0]  fifo, n_fifo;

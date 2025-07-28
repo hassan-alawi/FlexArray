@@ -44,27 +44,29 @@ import dsp_sys_arr_pkg::*;
 
 module sys_array #(parameter M = 2, N = 2, K = 2, BW = 2, NO_MEM = 0, IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, MUL_OUT_STG = 1, ADD_OUT_STG = 1, FPOPMODE_STG = 1, FPINMODE_STG = 1, MODE = 0)(
 input logic clk, nrst,
-AXI_STREAM_if.in in_str_if,
-AXI_STREAM_if.out out_str_if);
+AXI_STREAM_if.slave in_str_if,
+AXI_STREAM_if.master out_str_if);
 
 // PE Signals
 logic col_in_valid [0:M*K-1], row_in_valid [0:M*K-1], col_out_ready [0:M*K-1], row_out_ready                                            [0:M*K-1];
-word_t row_in_dat [0:M*K-1], col_in_dat                                                                                                 [0:M*K-1]; 
+logic [31:0] row_in_dat [0:M*K-1], col_in_dat                                                                                                 [0:M*K-1]; 
 logic col_in_ready [0:M*K-1], row_in_ready [0:M*K-1], error_bit [0:M*K-1], col_out_valid [0:M*K-1], row_out_valid [0:M*K-1], comp_done  [0:M*K-1];
 error user                                                                                                                              [0:M*K-1];
-word_t row_out_dat [0:M*K-1], col_out_dat                                                                                               [0:M*K-1];
-word_t out                                                                                                                             [0:M*K-1];
+logic [31:0] row_out_dat [0:M*K-1], col_out_dat                                                                                               [0:M*K-1];
+logic [31:0] out                                                                                                                             [0:M*K-1];
 
 // Dispatcher I/O signals
 logic done, err, done_dispatch;
 logic sys_comp_done, sys_comp_err;
 logic edge_col_in_valid [0:K-1], edge_row_in_valid [0:M-1], edge_row_in_ready [0:M-1], edge_col_in_ready [0:K-1];
-word_t edge_col_in_dat[0:K-1], edge_row_in_dat [0:M-1];
+logic [31:0] edge_col_in_dat[0:K-1], edge_row_in_dat [0:M-1];
 
 /// NO_MEM Model signals and registers
 // Matrices Data Registers
-word_t [N-1:0] a_r [0:M-1],n_a_r [0:M-1];
-word_t [N-1:0] b_c [0:K-1],n_b_c [0:K-1];
+logic [N-1:0][31:0] a_r [0:M-1];
+logic [N-1:0][31:0] n_a_r [0:M-1];
+logic [N-1:0][31:0] b_c [0:K-1];
+logic [N-1:0][31:0] n_b_c [0:K-1];
 
 // Per row/column Counters
 logic [$clog2(N):0] ctr [0:M+K-1], n_ctr [0:M+K-1]; 
