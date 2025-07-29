@@ -26,19 +26,8 @@ module tb_sys_array;
 
 parameter PERIOD = 1.5;
 
-parameter BW = 16; // Must be power of 2 (min 2)
+parameter BW = 128; // Must be multiple of 2 (min 2)
 parameter NUM_STRM_IN = 1; // Represents how many stream inputs of width BW needed to pass in whole column of A + row of B
-
-//`ifndef BW
-//    `define BW 50
-//`endif
-
-//`ifndef NUM_STRM_IN
-//    `define NUM_STRM_IN 1
-//`endif
-
-//localparam int BW = `BW;
-//localparam int NUM_STRM_IN = `NUM_STRM_IN;
 
 parameter BW_SCALE = shortreal'(NUM_STRM_IN)/2;
 
@@ -46,8 +35,8 @@ parameter M = int'(BW*BW_SCALE);
 parameter N = 4;
 parameter K = M;
 
-parameter NO_MEM    = 0;
-parameter MEM_LAT   = 0;
+parameter SYS_MODE  = 1;
+parameter MEM_LAT   = 3;
 
 parameter IN_STG_1 = 1;
 parameter IN_STG_2 = 0;
@@ -59,6 +48,7 @@ parameter FPINMODE_STG = 1;
 parameter MODE = 0;
 
 logic CLK = 0, nRST;
+logic sys_comp_done,sys_comp_err;
 
 //Testbench Signals
 shortreal A [0:M*N-1];
@@ -83,7 +73,7 @@ sys_array #(
     .N(N),
     .K(K),
     .BW(BW),
-    .NO_MEM(NO_MEM),
+    .SYS_MODE(SYS_MODE),
     .IN_STG_1(IN_STG_1),
     .IN_STG_2(IN_STG_2),
     .MUL_PIP(MUL_PIP),
@@ -93,7 +83,7 @@ sys_array #(
     .FPINMODE_STG(FPINMODE_STG),
     .MODE(MODE)
     )
-sa(CLK,nRST,in_str_if,out_str_if);
+sa(CLK,nRST,sys_comp_done,sys_comp_err,in_str_if,out_str_if);
 
 task init_tb();
     nRST = 1'b1;
@@ -169,7 +159,7 @@ automatic int passed = 1;
 
 for (int i=0; i<M; i++) begin
     for(int j=0; j<K; j++) begin
-        if(NO_MEM) begin
+        if(SYS_MODE==2) begin
             if(sa.out[i*K+j] != $shortrealtobits(C[i*K + j])) begin
                 $display("At %d, Incorrect computed value at row %d, column %d. \n Expected %f and got %f\n", $realtime,i+1,j+1,C[i*K + j],$bitstoshortreal(sa.out[i*K+j]));
                 passed = 0;
@@ -207,7 +197,7 @@ function void disp_out();
     $display("Systolic Array Out %2dx%2d\n",M,K);
     for (int i=0; i<M; i++) begin
         for(int j=0; j<K; j++) begin
-            if(NO_MEM) begin
+            if(SYS_MODE==2) begin
                 $write("%f ",$bitstoshortreal(sa.out[i*K+j]));
             end
             
@@ -272,6 +262,12 @@ task stream_pop(input int comp_done = 1);
             out_str_if.out_ready = 1'b1;
             
             @(negedge CLK);
+            
+            if(MEM_LAT) begin
+                out_str_if.out_ready = 1'b0;
+                repeat(MEM_LAT) @(negedge CLK);
+            end
+            
         end
     end
     
@@ -294,7 +290,7 @@ initial begin
     
     
     setup_mat();
-    if(!NO_MEM) begin
+    if(!(SYS_MODE==2)) begin
         stream_push();
         wait(out_str_if.out_valid);
         @(negedge CLK);

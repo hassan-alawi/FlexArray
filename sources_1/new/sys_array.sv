@@ -28,7 +28,6 @@ import dsp_sys_arr_pkg::*;
 // N : Number of columns for input matrix A and rows for input matrix B
 // K : Number of columns for input matrix B 
 // BW : Stream channel bus width in terms of 32 bit words
-// NO_MEM : Ideal model of systolic array computation that is purely compute bound (Disables AXI-Stream Interface)
 // IN_STG_1: Input Pipeline Stage infront of A and B Port (0-1)
 // IN_STG_2: Second Input Pipeline Stage infront of A (0-1)
 // MUL_PIP:  Additional Multiplier Pipeline Stage (0-1)
@@ -37,27 +36,32 @@ import dsp_sys_arr_pkg::*;
 // FPOPMODE_STG: Set of pipeline registers for FPOPMODE Adder Input selection (0-3)
 // FPINMODE_STG: Pipeline register infront of FPINMODE input (0-1)
 
+// System Mode of operations: (SYS_MODE)
+// AXI_NO_BUFF (0): Systolic array with AXI stream I/O but dispatcher directly interfaces with PEs
+// AXI_BUFF(1): Systolic array AXI stream I/O and dispatcher interfaces to input buffers which connect to PEs
+// NO_MEM (2): Ideal model of systolic array computation that is purely compute bound (Disables AXI-Stream Interface)
+
 // Modes of Operation 
 // 0: Multiply Accumulate 
 // 1: Multiply 
 // TBD 
 
-module sys_array #(parameter M = 2, N = 2, K = 2, BW = 2, NO_MEM = 0, IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, MUL_OUT_STG = 1, ADD_OUT_STG = 1, FPOPMODE_STG = 1, FPINMODE_STG = 1, MODE = 0)(
+module sys_array #(parameter M = 8, N = 2, K = 8, BW = 16, SYS_MODE = 1, IN_STG_1 = 1, IN_STG_2 = 0, MUL_PIP = 1, MUL_OUT_STG = 1, ADD_OUT_STG = 1, FPOPMODE_STG = 1, FPINMODE_STG = 1, MODE = 0)(
 input logic clk, nrst,
+output logic sys_comp_done,sys_comp_err,
 AXI_STREAM_if.slave in_str_if,
 AXI_STREAM_if.master out_str_if);
 
 // PE Signals
 logic col_in_valid [0:M*K-1], row_in_valid [0:M*K-1], col_out_ready [0:M*K-1], row_out_ready                                            [0:M*K-1];
-logic [31:0] row_in_dat [0:M*K-1], col_in_dat                                                                                                 [0:M*K-1]; 
+logic [31:0] row_in_dat [0:M*K-1], col_in_dat                                                                                           [0:M*K-1]; 
 logic col_in_ready [0:M*K-1], row_in_ready [0:M*K-1], error_bit [0:M*K-1], col_out_valid [0:M*K-1], row_out_valid [0:M*K-1], comp_done  [0:M*K-1];
 error user                                                                                                                              [0:M*K-1];
-logic [31:0] row_out_dat [0:M*K-1], col_out_dat                                                                                               [0:M*K-1];
-logic [31:0] out                                                                                                                             [0:M*K-1];
+logic [31:0] row_out_dat [0:M*K-1], col_out_dat                                                                                         [0:M*K-1];
+logic [31:0] out                                                                                                                        [0:M*K-1];
 
-// Dispatcher I/O signals
+// Dispatcher and Collector I/O signals
 logic done, err, done_dispatch;
-logic sys_comp_done, sys_comp_err;
 logic edge_col_in_valid [0:K-1], edge_row_in_valid [0:M-1], edge_row_in_ready [0:M-1], edge_col_in_ready [0:K-1];
 logic [31:0] edge_col_in_dat[0:K-1], edge_row_in_dat [0:M-1];
 
@@ -92,8 +96,29 @@ edge_row_in_dat,edge_col_in_dat,edge_col_in_valid,edge_row_in_valid);
 
 collector #(.M(M), .K(K), .BW(BW)) collect (clk,nrst,out_fifo_if,out,done_dispatch,done,err,sys_comp_done,sys_comp_err);
 
-// If we are in MEM mode, connect dispatcher I/O signals to systolic array
-if (!NO_MEM) begin
+// Systolic Array Buffers
+logic push [0:M+K-1], pop [0:M+K-1], is_full [0:M+K-1], is_empty [0:M+K-1];
+logic [31:0] dat_in [0:M+K-1], dat_out [0:M+K-1];
+logic [$clog2(N):0] ocp [0:M+K-1];
+
+generate 
+    for(genvar i = 0; i < M+K; i++) begin
+        fifo_wrapper #(.N(N)) sys_buff(
+        .clk(clk),
+        .nrst(nrst),
+        .push(push[i]),
+        .pop(pop[i]),
+        .dat_in(dat_in[i]),
+        .is_full(is_full[i]),
+        .is_empty(is_empty[i]),
+        .dat_out(dat_out[i]),
+        .ocp(ocp[i])
+        );
+    end
+endgenerate
+
+// If we are in AXI_NO_BUFF mode, connect dispatcher I/O signals to systolic array
+if (SYS_MODE == 0) begin
     always_comb begin 
         for(int i=0; i<K; i++) begin
             col_in_valid[i] = edge_col_in_valid[i];
@@ -105,6 +130,39 @@ if (!NO_MEM) begin
             row_in_valid[j*K] = edge_row_in_valid[j];
             row_in_dat[j*K] = edge_row_in_dat[j];
             edge_row_in_ready[j] = row_in_ready[j*K];  
+        end
+    end
+end
+
+// If we are in AXI_BUFF mode, connect dispatcher I/O signals to buffers, and buffers to systolic array
+if(SYS_MODE == 1) begin   
+    // Connect Dispatcher to FIFOs
+    always_comb begin 
+        for(int i=0; i<K; i++) begin
+            push[i] = edge_col_in_valid[i];
+            dat_in[i] = edge_col_in_dat[i];
+            edge_col_in_ready[i] = ~is_full[i]; 
+        end
+        
+        for(int j=0; j<M; j++) begin
+            push[j+K] = edge_row_in_valid[j];
+            dat_in[j+K] = edge_row_in_dat[j];
+            edge_row_in_ready[j] = ~is_full[j+K];  
+        end
+    end
+    
+    // Connect FIFOs to systolic array
+    always_comb begin 
+        for(int i=0; i<K; i++) begin
+            col_in_valid[i] = ~is_empty[i];
+            col_in_dat[i] = dat_out[i];
+            pop[i] = col_in_ready[i]; 
+        end
+        
+        for(int j=0; j<M; j++) begin
+            row_in_valid[j*K] = ~is_empty[j+K];
+            row_in_dat[j*K] = dat_out[j+K];
+            pop[j+K] = row_in_ready[j*K];  
         end
     end
 end
@@ -148,7 +206,7 @@ end
 endgenerate
 
 // Register state for NO_MEM model signals and shift registers
-if(NO_MEM) begin
+if(SYS_MODE == 2) begin
     always_ff @(posedge clk, negedge nrst) begin
     
         if(~nrst) begin
@@ -190,7 +248,7 @@ end
 always_comb begin
     // Edge PE connections
     // If NO MEM, hook up shift registers to systolic array edge PEs
-    if(NO_MEM) begin
+    if(SYS_MODE==2) begin
         // Row 0 column inputs
         for(int i=0; i<K; i++) begin
             col_in_valid[i] = (ctr[i] == N) ? 1'b0 : 1'b1;
@@ -259,7 +317,7 @@ always_comb begin
     
 end
 
-if(NO_MEM) begin
+if(SYS_MODE==2) begin
 // Shift Register and Counter Logic Logic
 always_comb begin
     // Counter used so that shift register stops shifting in data after all its operands are in the systolic array

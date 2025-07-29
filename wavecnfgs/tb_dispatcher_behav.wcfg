@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_dispatcher_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="dsp_sys_arr_pkg" />
+            <top_module name="glbl" />
+            <top_module name="tb_dispatcher" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="171.541 ns"></ZoomStartTime>
+      <ZoomEndTime time="205.092 ns"></ZoomEndTime>
+      <Cursor1Time time="199.500 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="204"></NameColumnWidth>
+      <ValueColumnWidth column_width="94"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="15" />
+   <wvobject type="logic" fp_name="/tb_dispatcher/CLK">
+      <obj_property name="ElementShortName">CLK</obj_property>
+      <obj_property name="ObjectShortName">CLK</obj_property>
+      <obj_property name="CustomSignalColor">#FF0000</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_dispatcher/nRST">
+      <obj_property name="ElementShortName">nRST</obj_property>
+      <obj_property name="ObjectShortName">nRST</obj_property>
+      <obj_property name="CustomSignalColor">#800080</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dispatcher/total_testcases">
+      <obj_property name="ElementShortName">total_testcases[31:0]</obj_property>
+      <obj_property name="ObjectShortName">total_testcases[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dispatcher/total_failed_testcases">
+      <obj_property name="ElementShortName">total_failed_testcases[31:0]</obj_property>
+      <obj_property name="ObjectShortName">total_failed_testcases[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="group" fp_name="group138">
+      <obj_property name="label">Input FIFO</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/tb_dispatcher/in_fifo_if/push">
+         <obj_property name="ElementShortName">push</obj_property>
+         <obj_property name="ObjectShortName">push</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/in_fifo_if/pop">
+         <obj_property name="ElementShortName">pop</obj_property>
+         <obj_property name="ObjectShortName">pop</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/in_fifo_if/is_full">
+         <obj_property name="ElementShortName">is_full</obj_property>
+         <obj_property name="ObjectShortName">is_full</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/in_fifo_if/is_empty">
+         <obj_property name="ElementShortName">is_empty</obj_property>
+         <obj_property name="ObjectShortName">is_empty</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/in_fifo_if/dat_in">
+         <obj_property name="ElementShortName">dat_in[3:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">dat_in[3:0][31:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/in_fifo_if/dat_out">
+         <obj_property name="ElementShortName">dat_out[3:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">dat_out[3:0][31:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group143">
+      <obj_property name="label">Output FIFO</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/tb_dispatcher/out_fifo_if/is_empty">
+         <obj_property name="ElementShortName">is_empty</obj_property>
+         <obj_property name="ObjectShortName">is_empty</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/out_fifo_if/is_full">
+         <obj_property name="ElementShortName">is_full</obj_property>
+         <obj_property name="ObjectShortName">is_full</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/out_fifo_if/pop">
+         <obj_property name="ElementShortName">pop</obj_property>
+         <obj_property name="ObjectShortName">pop</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/out_fifo_if/push">
+         <obj_property name="ElementShortName">push</obj_property>
+         <obj_property name="ObjectShortName">push</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/out_fifo_if/dat_in">
+         <obj_property name="ElementShortName">dat_in[3:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">dat_in[3:0][31:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/out_fifo_if/dat_out">
+         <obj_property name="ElementShortName">dat_out[3:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">dat_out[3:0][31:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group152">
+      <obj_property name="label">AXI Interface</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/tb_dispatcher/axi_str_if/in_valid">
+         <obj_property name="ElementShortName">in_valid</obj_property>
+         <obj_property name="ObjectShortName">in_valid</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/axi_str_if/in_ready">
+         <obj_property name="ElementShortName">in_ready</obj_property>
+         <obj_property name="ObjectShortName">in_ready</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/axi_str_if/out_valid">
+         <obj_property name="ElementShortName">out_valid</obj_property>
+         <obj_property name="ObjectShortName">out_valid</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/axi_str_if/out_ready">
+         <obj_property name="ElementShortName">out_ready</obj_property>
+         <obj_property name="ObjectShortName">out_ready</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/axi_str_if/done">
+         <obj_property name="ElementShortName">done</obj_property>
+         <obj_property name="ObjectShortName">done</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/axi_str_if/err">
+         <obj_property name="ElementShortName">err</obj_property>
+         <obj_property name="ObjectShortName">err</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/axi_str_if/in_stream">
+         <obj_property name="ElementShortName">in_stream[3:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">in_stream[3:0][31:0]</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/axi_str_if/out_stream">
+         <obj_property name="ElementShortName">out_stream[3:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">out_stream[3:0][31:0]</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group162">
+      <obj_property name="label">DUT Inputs</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/tb_dispatcher/dispatch/done">
+         <obj_property name="ElementShortName">done</obj_property>
+         <obj_property name="ObjectShortName">done</obj_property>
+         <obj_property name="CustomSignalColor">#FF0080</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/dispatch/err">
+         <obj_property name="ElementShortName">err</obj_property>
+         <obj_property name="ObjectShortName">err</obj_property>
+         <obj_property name="CustomSignalColor">#FF0080</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/dispatch/col_in_ready">
+         <obj_property name="ElementShortName">col_in_ready[0:5]</obj_property>
+         <obj_property name="ObjectShortName">col_in_ready[0:5]</obj_property>
+         <obj_property name="CustomSignalColor">#FF0080</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/dispatch/row_in_ready">
+         <obj_property name="ElementShortName">row_in_ready[0:5]</obj_property>
+         <obj_property name="ObjectShortName">row_in_ready[0:5]</obj_property>
+         <obj_property name="CustomSignalColor">#FF0080</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/dispatch/out">
+         <obj_property name="ElementShortName">out[0:35][31:0]</obj_property>
+         <obj_property name="ObjectShortName">out[0:35][31:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF0080</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group163">
+      <obj_property name="label">DUT Outputs</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/tb_dispatcher/dispatch/row_in_dat">
+         <obj_property name="ElementShortName">row_in_dat[0:5][31:0]</obj_property>
+         <obj_property name="ObjectShortName">row_in_dat[0:5][31:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FAAFBE</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/dispatch/col_in_dat">
+         <obj_property name="ElementShortName">col_in_dat[0:5][31:0]</obj_property>
+         <obj_property name="ObjectShortName">col_in_dat[0:5][31:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FAAFBE</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/dispatch/col_in_valid">
+         <obj_property name="ElementShortName">col_in_valid[0:5]</obj_property>
+         <obj_property name="ObjectShortName">col_in_valid[0:5]</obj_property>
+         <obj_property name="CustomSignalColor">#FAAFBE</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/dispatch/row_in_valid">
+         <obj_property name="ElementShortName">row_in_valid[0:5]</obj_property>
+         <obj_property name="ObjectShortName">row_in_valid[0:5]</obj_property>
+         <obj_property name="CustomSignalColor">#FAAFBE</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group170">
+      <obj_property name="label">DUT Internals</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/tb_dispatcher/dispatch/dispatch_regs">
+         <obj_property name="ElementShortName">dispatch_regs[3:0]</obj_property>
+         <obj_property name="ObjectShortName">dispatch_regs[3:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/dispatch/inner_ctr">
+         <obj_property name="ElementShortName">inner_ctr[3:0]</obj_property>
+         <obj_property name="ObjectShortName">inner_ctr[3:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dispatcher/dispatch/outer_ctr">
+         <obj_property name="ElementShortName">outer_ctr[3:0]</obj_property>
+         <obj_property name="ObjectShortName">outer_ctr[3:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/dispatch/done_dispatch">
+         <obj_property name="ElementShortName">done_dispatch</obj_property>
+         <obj_property name="ObjectShortName">done_dispatch</obj_property>
+         <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/dispatch/row_ready">
+         <obj_property name="ElementShortName">row_ready</obj_property>
+         <obj_property name="ObjectShortName">row_ready</obj_property>
+         <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/dispatch/col_ready">
+         <obj_property name="ElementShortName">col_ready</obj_property>
+         <obj_property name="ObjectShortName">col_ready</obj_property>
+         <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/dispatch/fill_done">
+         <obj_property name="ElementShortName">fill_done</obj_property>
+         <obj_property name="ObjectShortName">fill_done</obj_property>
+         <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/dispatch/outer_ctr_roll">
+         <obj_property name="ElementShortName">outer_ctr_roll</obj_property>
+         <obj_property name="ObjectShortName">outer_ctr_roll</obj_property>
+         <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dispatcher/dispatch/inner_ctr_roll">
+         <obj_property name="ElementShortName">inner_ctr_roll</obj_property>
+         <obj_property name="ObjectShortName">inner_ctr_roll</obj_property>
+         <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dispatcher/outer_ctr">
+      <obj_property name="ElementShortName">outer_ctr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">outer_ctr[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dispatcher/inner_ctr">
+      <obj_property name="ElementShortName">inner_ctr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">inner_ctr[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dispatcher/outer_ctr_hist">
+      <obj_property name="ElementShortName">outer_ctr_hist[1:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">outer_ctr_hist[1:0][31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dispatcher/in_dat_hist">
+      <obj_property name="ElementShortName">in_dat_hist[1:0][3:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">in_dat_hist[1:0][3:0][31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dispatcher/passed_all_input">
+      <obj_property name="ElementShortName">passed_all_input[31:0]</obj_property>
+      <obj_property name="ObjectShortName">passed_all_input[31:0]</obj_property>
+   </wvobject>
+</wave_config>

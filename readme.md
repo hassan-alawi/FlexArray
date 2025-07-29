@@ -5,7 +5,7 @@ This project is part of my KAUST summer internship under the direction of my men
  - Array Dimensions: M rows, K columns, N row/columns
  - Pipeline stages in DSP: (1-5)
  - System Interface bus width: Minimum of 2 (32 bit words)
- - System Interface: Can operate with no data loading and ofloading overhead to model pure compute latency
+ - System Mode: Multiple modes of behaviour available (3)
 
 The hope of this endeavor is that this flexible RTL model can be used to aid systems research in ACCL, and to potentialy develop a reconfigurable dataflow architecture (RDA) from the base systolic array architecture, through more flexible PE interconnects 
 
@@ -21,12 +21,13 @@ To find wave config files, navigate to wavecnfgs/
 &darr;&rarr; **fifo_in**: Connected to input AXI-stream  
 &darr;&rarr; **fifo_out**: Connected to output AXI-stream  
 &darr;&rarr; **dispatcher**: Intermediarry between AXI-Stream and systolic array. Loads to systolic array  
+&darr;&rarr; **sys_buffer**: Buffers between the dispatcher and systolic array, that allow the dispatcher to not stall when an edge PE in its range is not ready  
 &darr;&rarr; **collector**: Intermediarry between systolic array and AXI-Stream. Offloads data from systolic array  
 &darr;&rarr; **dsp_wrapper**: PE with AXI interface logic, moves operands between neighboring PEs  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;&rarr; **dsp_prim**: Wrapper for DSP primitive. Handles AXI interface blocking mode behavior. Doesn't allow new inputs to pass untill all operands are ready to be passed to the DSP. Fully pipelined operation, so after pipeline full, output data is ready every cycle.  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;&rarr;**DSPFP32**: Xilinix DSP single precision floating point primitive 
 
-![systolic_array_top_level](/uploads/479734d3060b3eb2ba24d3e43eb9c38c/systolic_array_top_level.png)
+![sys_array_buffs](/uploads/39496406759dff1860606fd4f308743e/sys_array_buffs.png)
 ## Usage
 
 #### Configuring the PE
@@ -59,10 +60,17 @@ The total number of operations per PE = N
 Total number of operations = N\*M\*K 
 
 #### Configuring System Interface
-Users of the device can opt out of using the AXI-stream system interface and simply modeling how long it takes the systolic array to start and finish a computation, with data preloaded. To do so, set the parameter:
-- NO_MEM: Removes AXI-stream interface, which includes the input/out FIFOs,collector and dispatcher, and uses pre-loaded shift registers, connected to edge PEs, that pass data when PE is ready to accept it. There is a per-edge PE counter that counts how many operands passed in to ensure only N shifts occur. tb_sys_array polls for the done signal then reads the array of output signal and compares it to the computed output matrix to check for correctnes. The TB also has a cycle counter to measure compute latency
+Users of the device can opt out of using the AXI-stream interface and simply modeling how long it takes the systolic array to start and finish a computation, with data preloaded. To do so, set the parameter SYS_MODE:
+- NO_MEM (2): Removes AXI-stream interface, which includes the input/out FIFOs,collector and dispatcher, and uses pre-loaded shift registers, connected to edge PEs, that pass data when PE is ready to accept it. There is a per-edge PE counter that counts how many operands passed in to ensure only N shifts occur. tb_sys_array polls for the done signal then reads the array of output signal and compares it to the computed output matrix to check for correctnes. The TB also has a cycle counter to measure compute latency  
 
-Otherwise if you want an accurate system simulation you would set NO_MEM to 0. This removes the shift register and counter logic and replaces it with the dispatcher and collector. This unit reads from the input FIFO and distributes the operands to their associated edge PEs, and collects the output when done to fill the output FIFO. You can configure the system interface and the collector and dispatcher with the parameter:  
+Otherwise if you want an accurate system simulation you would set SYS_MODE to 0 or 1. This removes the shift register and counter logic and replaces it with the dispatcher and collector(and maybe the input buffers). These units read from the input FIFO and distributes the operands to their associated edge PEs, and collects the output when done to fill the output FIFO  
+
+- AXI_BUFF(1): This configuration utilizes both the AXI-strean interface and systolic array input buffers. It essentially decouples the dispatcher from the array's PEs, allowing the dispatcher to not be stalled by PEs which are not ready to accept data. This adds  
+additional space overhead, but greatly improves throughput for configurations with large systolic arrays with BW close to the dimensions of the systolic array (e.g. 1 <= g <= 3). There is an input buffer per row and column of the systolic array, each of size N, to be as lean as possible  
+
+- AXI_NO_BUFF(0): This configuration is the same as AXI_BUFF but attaches the dispatcher directly to the systolic array. This makes the dispatcher more prone to stalling, however it is much more space efficient and for large array dimensions relative to BW (e.g. g>3) the system acheives similar performance   
+
+You can configure the system interface and the collector and dispatcher with the parameter:  
 - BW: Bus Width (in terms of 32-bit Words). The bigger the BW, the more PEs get passed their operands and their outputs pulled in a single cycle 
 
 The use of the dispatcher and its design constrains the systolic array parameters. The constraints are:  
@@ -79,7 +87,7 @@ For input data, the dispatcher utilizes an interleaved operand format that looks
 
 The dispatcher attempts to pass along a column of A and a row of B, for one of N iterations  
    
-On each cycle the dispatcher takes **[a<sub>n_j</sub>, b<sub>j,n</sub>, ..., a<sub>n+BW/2,j</sub>, b<sub>j,n+BW/2</sub>]** operands and passes them to their edge PE. This ensures that on each cycle, PE<sub>i,j</sub> has both its operands ready to be processed as well as all PEs to the left or above it  
+On each cycle the dispatcher takes **[a<sub>n_j</sub>, b<sub>j,n</sub>, ..., a<sub>n+BW/2,j</sub>, b<sub>j,n+BW/2</sub>]** operands and passes them to their edge PE (or associated buffers). This ensures that on each cycle, PE<sub>i,j</sub> has both its operands ready to be processed as well as all PEs to the left or above it  
 
 The bigger the BW relative to M/K, the faster a row or column of A and B respectivley is passed into the systolic array 
 

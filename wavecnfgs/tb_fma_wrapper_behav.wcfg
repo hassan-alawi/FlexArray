@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_dsp_wrapper_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="dsp_sys_arr_pkg" />
+            <top_module name="glbl" />
+            <top_module name="tb_dsp_wrapper" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="687.541 ns"></ZoomStartTime>
+      <ZoomEndTime time="752.892 ns"></ZoomEndTime>
+      <Cursor1Time time="741.441 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="159"></NameColumnWidth>
+      <ValueColumnWidth column_width="98"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="7" />
+   <wvobject type="logic" fp_name="/tb_dsp_wrapper/CLK">
+      <obj_property name="ElementShortName">CLK</obj_property>
+      <obj_property name="ObjectShortName">CLK</obj_property>
+      <obj_property name="CustomSignalColor">#FF0000</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_dsp_wrapper/nRST">
+      <obj_property name="ElementShortName">nRST</obj_property>
+      <obj_property name="ObjectShortName">nRST</obj_property>
+      <obj_property name="CustomSignalColor">#800080</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dsp_wrapper/total_testcases">
+      <obj_property name="ElementShortName">total_testcases[31:0]</obj_property>
+      <obj_property name="ObjectShortName">total_testcases[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dsp_wrapper/total_failed_testcases">
+      <obj_property name="ElementShortName">total_failed_testcases[31:0]</obj_property>
+      <obj_property name="ObjectShortName">total_failed_testcases[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="group" fp_name="group22">
+      <obj_property name="label">DUT Inputs</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/peif/col_in_valid">
+         <obj_property name="ElementShortName">col_in_valid</obj_property>
+         <obj_property name="ObjectShortName">col_in_valid</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/peif/row_in_valid">
+         <obj_property name="ElementShortName">row_in_valid</obj_property>
+         <obj_property name="ObjectShortName">row_in_valid</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/peif/col_out_ready">
+         <obj_property name="ElementShortName">col_out_ready</obj_property>
+         <obj_property name="ObjectShortName">col_out_ready</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/peif/row_out_ready">
+         <obj_property name="ElementShortName">row_out_ready</obj_property>
+         <obj_property name="ObjectShortName">row_out_ready</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dsp_wrapper/peif/row_in_dat">
+         <obj_property name="ElementShortName">row_in_dat</obj_property>
+         <obj_property name="ObjectShortName">row_in_dat</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+         <obj_property name="radix_realType">FLOATINGPOINTRADIX</obj_property>
+         <obj_property name="radix_fractionWidth">23</obj_property>
+         <obj_property name="radix_otherWidth">8</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dsp_wrapper/peif/col_in_dat">
+         <obj_property name="ElementShortName">col_in_dat</obj_property>
+         <obj_property name="ObjectShortName">col_in_dat</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group24">
+      <obj_property name="label">DUT Outputs</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/peif/col_in_ready">
+         <obj_property name="ElementShortName">col_in_ready</obj_property>
+         <obj_property name="ObjectShortName">col_in_ready</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/peif/row_in_ready">
+         <obj_property name="ElementShortName">row_in_ready</obj_property>
+         <obj_property name="ObjectShortName">row_in_ready</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/peif/error_bit">
+         <obj_property name="ElementShortName">error_bit</obj_property>
+         <obj_property name="ObjectShortName">error_bit</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/peif/col_out_valid">
+         <obj_property name="ElementShortName">col_out_valid</obj_property>
+         <obj_property name="ObjectShortName">col_out_valid</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/peif/row_out_valid">
+         <obj_property name="ElementShortName">row_out_valid</obj_property>
+         <obj_property name="ObjectShortName">row_out_valid</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dsp_wrapper/peif/user">
+         <obj_property name="ElementShortName">user</obj_property>
+         <obj_property name="ObjectShortName">user</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/peif/comp_done">
+         <obj_property name="ElementShortName">comp_done</obj_property>
+         <obj_property name="ObjectShortName">comp_done</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dsp_wrapper/peif/accum_sum">
+         <obj_property name="ElementShortName">accum_sum</obj_property>
+         <obj_property name="ObjectShortName">accum_sum</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dsp_wrapper/peif/row_out_dat">
+         <obj_property name="ElementShortName">row_out_dat</obj_property>
+         <obj_property name="ObjectShortName">row_out_dat</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dsp_wrapper/peif/col_out_dat">
+         <obj_property name="ElementShortName">col_out_dat</obj_property>
+         <obj_property name="ObjectShortName">col_out_dat</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group71">
+      <obj_property name="label">DUT Internals</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/tb_dsp_wrapper/DUT/out_dat">
+         <obj_property name="ElementShortName">out_dat</obj_property>
+         <obj_property name="ObjectShortName">out_dat</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/out_valid">
+         <obj_property name="ElementShortName">out_valid</obj_property>
+         <obj_property name="ObjectShortName">out_valid</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/out_ready">
+         <obj_property name="ElementShortName">out_ready</obj_property>
+         <obj_property name="ObjectShortName">out_ready</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/a_valid">
+         <obj_property name="ElementShortName">a_valid</obj_property>
+         <obj_property name="ObjectShortName">a_valid</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/a_ready">
+         <obj_property name="ElementShortName">a_ready</obj_property>
+         <obj_property name="ObjectShortName">a_ready</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/b_valid">
+         <obj_property name="ElementShortName">b_valid</obj_property>
+         <obj_property name="ObjectShortName">b_valid</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/b_ready">
+         <obj_property name="ElementShortName">b_ready</obj_property>
+         <obj_property name="ObjectShortName">b_ready</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/a_read">
+         <obj_property name="ElementShortName">a_read</obj_property>
+         <obj_property name="ObjectShortName">a_read</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/b_read">
+         <obj_property name="ElementShortName">b_read</obj_property>
+         <obj_property name="ObjectShortName">b_read</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/c_read">
+         <obj_property name="ElementShortName">c_read</obj_property>
+         <obj_property name="ObjectShortName">c_read</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_dsp_wrapper/DUT/c_dat">
+         <obj_property name="ElementShortName">c_dat</obj_property>
+         <obj_property name="ObjectShortName">c_dat</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/c_valid">
+         <obj_property name="ElementShortName">c_valid</obj_property>
+         <obj_property name="ObjectShortName">c_valid</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_dsp_wrapper/DUT/c_ready">
+         <obj_property name="ElementShortName">c_ready</obj_property>
+         <obj_property name="ObjectShortName">c_ready</obj_property>
+         <obj_property name="CustomSignalColor">#FFA500</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

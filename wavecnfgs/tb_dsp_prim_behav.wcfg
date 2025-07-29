@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_dsp_prim_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="dsp_sys_arr_pkg" />
+            <top_module name="glbl" />
+            <top_module name="tb_dsp_prim" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="92.283 ns"></ZoomStartTime>
+      <ZoomEndTime time="118.824 ns"></ZoomEndTime>
+      <Cursor1Time time="100.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="159"></NameColumnWidth>
+      <ValueColumnWidth column_width="78"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="8" />
+   <wvobject type="logic" fp_name="/tb_dsp_prim/CLK">
+      <obj_property name="ElementShortName">CLK</obj_property>
+      <obj_property name="ObjectShortName">CLK</obj_property>
+      <obj_property name="CustomSignalColor">#FF0000</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_dsp_prim/nRST">
+      <obj_property name="ElementShortName">nRST</obj_property>
+      <obj_property name="ObjectShortName">nRST</obj_property>
+      <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/glbl/GSR">
+      <obj_property name="ElementShortName">GSR</obj_property>
+      <obj_property name="ObjectShortName">GSR</obj_property>
+      <obj_property name="CustomSignalColor">#FFFFFF</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dsp_prim/ex_accum_sum">
+      <obj_property name="ElementShortName">ex_accum_sum</obj_property>
+      <obj_property name="ObjectShortName">ex_accum_sum</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dsp_prim/add_out">
+      <obj_property name="ElementShortName">add_out</obj_property>
+      <obj_property name="ObjectShortName">add_out</obj_property>
+      <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dsp_prim/mul_out">
+      <obj_property name="ElementShortName">mul_out</obj_property>
+      <obj_property name="ObjectShortName">mul_out</obj_property>
+      <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dsp_prim/a_dat">
+      <obj_property name="ElementShortName">a_dat</obj_property>
+      <obj_property name="ObjectShortName">a_dat</obj_property>
+      <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_dsp_prim/b_dat">
+      <obj_property name="ElementShortName">b_dat</obj_property>
+      <obj_property name="ObjectShortName">b_dat</obj_property>
+      <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+</wave_config>
