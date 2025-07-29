@@ -120,6 +120,6 @@ The current implementation can be improved in many ways, and is modular enough t
 
 ## Authors
 
-- Hassan Al-alawi [@alawih](https://gitlab.kaust.edu.sa/alawih)
+- Hassan Al-alawi [@hassan-alawi](https://github.com/hassan-alawi)
 
 
