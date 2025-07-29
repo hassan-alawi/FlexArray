@@ -60,16 +60,6 @@ The total number of operations per PE = N
 Total number of operations = N\*M\*K 
 
 #### Configuring System Interface
-Users of the device can opt out of using the AXI-stream interface and simply modeling how long it takes the systolic array to start and finish a computation, with data preloaded. To do so, set the parameter SYS_MODE:
-- NO_MEM (2): Removes AXI-stream interface, which includes the input/out FIFOs,collector and dispatcher, and uses pre-loaded shift registers, connected to edge PEs, that pass data when PE is ready to accept it. There is a per-edge PE counter that counts how many operands passed in to ensure only N shifts occur. tb_sys_array polls for the done signal then reads the array of output signal and compares it to the computed output matrix to check for correctnes. The TB also has a cycle counter to measure compute latency  
-
-Otherwise if you want an accurate system simulation you would set SYS_MODE to 0 or 1. This removes the shift register and counter logic and replaces it with the dispatcher and collector(and maybe the input buffers). These units read from the input FIFO and distributes the operands to their associated edge PEs, and collects the output when done to fill the output FIFO  
-
-- AXI_BUFF(1): This configuration utilizes both the AXI-strean interface and systolic array input buffers. It essentially decouples the dispatcher from the array's PEs, allowing the dispatcher to not be stalled by PEs which are not ready to accept data. This adds  
-additional space overhead, but greatly improves throughput for configurations with large systolic arrays with BW close to the dimensions of the systolic array (e.g. 1 <= g <= 3). There is an input buffer per row and column of the systolic array, each of size N, to be as lean as possible  
-
-- AXI_NO_BUFF(0): This configuration is the same as AXI_BUFF but attaches the dispatcher directly to the systolic array. This makes the dispatcher more prone to stalling, however it is much more space efficient and for large array dimensions relative to BW (e.g. g>3) the system acheives similar performance   
-
 You can configure the system interface and the collector and dispatcher with the parameter:  
 - BW: Bus Width (in terms of 32-bit Words). The bigger the BW, the more PEs get passed their operands and their outputs pulled in a single cycle 
 
@@ -78,7 +68,17 @@ The use of the dispatcher and its design constrains the systolic array parameter
 - M = K
 - M = BW*g/2, where g is a scaling factor and integer s.t. g>=1
 
-If these constraints are not maintained, then the dispatcher logic fails
+If these constraints are not maintained, then the dispatcher logic fails  
+
+Users of the device can opt out of using the AXI-stream interface and simply modeling how long it takes the systolic array to start and finish a computation, with data preloaded. To do so, set the parameter SYS_MODE:
+- NO_MEM (2): Removes AXI-stream interface, which includes the input/out FIFOs,collector and dispatcher, and uses pre-loaded shift registers, connected to edge PEs, that pass data when PE is ready to accept it. There is a per-edge PE counter that counts how many operands passed in to ensure only N shifts occur. tb_sys_array polls for the done signal then reads the array of output signal and compares it to the computed output matrix to check for correctnes. The TB also has a cycle counter to measure compute latency  
+
+Otherwise if you want an accurate system simulation you would set SYS_MODE to 0 or 1. This removes the shift register and counter logic and replaces it with the dispatcher and collector(and maybe the input buffers). These units read from the input FIFO and distributes the operands to their associated edge PEs, and collects the output when done to fill the output FIFO  
+
+- AXI_BUFF(1): This configuration utilizes both the AXI-strean interface and systolic array input buffers. It essentially decouples the dispatcher from the array's PEs, allowing the dispatcher to not be stalled by PEs which are not ready to accept data. This adds
+additional space overhead, but greatly improves throughput for configurations with large systolic arrays and BW close to the dimensions of the systolic array (e.g. 1<= g <=3). There is an input buffer per row and column of the systolic array, each of size N, to be as lean as possible  
+
+- AXI_NO_BUFF(0): This configuration is the same as AXI_BUFF but attaches the dispatcher directly to the systolic array. This makes the dispatcher more prone to stalling, however it is much more space efficient and for large array dimensions relative to BW (e.g. g>3) the system acheives similar performance   
 
 #### Memory Layout
 The use of the dispatcher also constrains how the input and output memory layout should look like.  
