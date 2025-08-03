@@ -27,7 +27,7 @@ To find wave config files, navigate to wavecnfgs/
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;&rarr; **dsp_prim**: Wrapper for DSP primitive. Handles AXI interface blocking mode behavior. Doesn't allow new inputs to pass untill all operands are ready to be passed to the DSP. Fully pipelined operation, so after pipeline full, output data is ready every cycle.  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;&rarr;**DSPFP32**: Xilinix DSP single precision floating point primitive 
 
-![](https://gitlab.kaust.edu.sa/alawih/rda/-/raw/master/diagrams/sys_array_buffs.png?ref_type=heads)   
+![](https://github.com/hassan-alawi/FlexArray/blob/master/diagrams/sys_array_labeled_transparent.png)   
 
 ## Usage
 
